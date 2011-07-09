@@ -9,11 +9,10 @@ class Cell
   def initialize(g, x, y)
     @grid = g
     @x, @y = x, y
-    posible!
   end
 
   def empty?
-    @grid[y][x] == 0
+    @grid[y][x] == @grid.zero
   end
 
   def posible
@@ -37,7 +36,7 @@ class Cell
   end
 
   def next!
-    @grid[y][x] = @set.shift.to_i
+    @grid[y][x] = @set.shift || @grid.zero
   end
 
   def inspect
@@ -48,7 +47,7 @@ end
 
 class Grid < Array
 
-  attr_reader :dim, :sqsize, :digits
+  attr_reader :dim, :sqsize, :digits, :zero
 
   def self.read_file(fname)
     gr = []
@@ -71,11 +70,20 @@ class Grid < Array
     grid
   end
 
-  def initialize(dim)
+  def initialize(dim, chars=:numeric)
     @sqsize = Math.sqrt(dim).to_i
     raise "Wrong dimension #{dim}" if @sqsize**2 != dim
     @dim = dim
-    super(@dim){Array.new(@dim){0}}
+
+    @zero = 0
+    if chars == :alphabet
+      @chars = ('a'..(('a'.ord+@dim-1).chr)).to_a
+      @zero = '.'
+    else
+      @chars = (1..@dim).to_a
+    end
+
+    super(@dim){Array.new(@dim){@zero}}
     @digits = "#{@dim}".size
   end
 
@@ -83,7 +91,7 @@ class Grid < Array
     cells=[]
     @dim.times do |y|
       @dim.times do |x|
-        cells << Cell.new(self,x,y) if self[y][x] == 0
+        cells << Cell.new(self,x,y) if self[y][x] == @zero
       end
     end
     cells
@@ -92,7 +100,7 @@ class Grid < Array
   def place(x,y,n)
     old = self[y][x]
     self[y][x] = n
-    return true if conflict?
+    return true if noconflict?
     self[y][x] = old
     false
   end
@@ -100,21 +108,21 @@ class Grid < Array
   def try(x,y,n)
     old = self[y][x]
     self[y][x] = n
-    s = conflict?
+    s = noconflict?
     self[y][x] = old
     s
   end
 
   def posible(x,y)
     res = []
-    (1..@dim).each do |i|
+    @chars.each do |i|
       res << i if try(x,y,i)
     end
     res
   end
 
-  def conflict?
-    return false if self[0][0] == 0
+  def noconflict?
+    return false if self[0][0] == @zero
     @dim.times do |i|
       return false unless check_row(i)
       return false unless check_column(i)
@@ -128,9 +136,9 @@ class Grid < Array
   end
 
   def check(numbers)
-    last = 0
+    last = @zero
     numbers.sort.each do |n|
-      next if n == 0
+      next if n == @zero
       return false if n == last
       last = n
     end
@@ -173,18 +181,22 @@ class Grid < Array
   alias oldprint print
   def print(mask=nil)
     0.step(@dim-1,@sqsize) do |y|
+      puts "\n" if y!=0
       y.upto(y+@sqsize-1) do |row|
         0.step(@dim-1,@sqsize) do |x|
           nums = self[row][x,@sqsize]
           nums.size.times do |i|
-            nums[i] = 0 if mask and not mask[row][x+i]
+            nums[i] = @zero if mask and not mask[row][x+i]
           end
-          template = " %#{@digits}d"*@sqsize + " "
-          oldprint( template % nums )
+          if @zero == 0
+            template = " %#{@digits}d"*@sqsize + " "
+            oldprint( template % nums )
+          else
+            oldprint( nums.join(" ") + "  " )
+          end
         end
         puts "\n"
       end
-      puts "\n" if y<(@dim.size-2)
     end
   end
 
@@ -194,10 +206,10 @@ class Generator
 
   attr_reader :grid, :mask, :level
 
-  def initialize(level=0, dim=9)
+  def initialize(level=0, dim=9, chars=:numeric)
     @level = level
     @dim = dim
-    @grid = Grid.new @dim
+    @grid = Grid.new @dim, chars
     @mask = Array.new(@dim){Array.new(@dim){true}}
     generate
     create_mask(level)
@@ -237,6 +249,7 @@ class Generator
 
     done = false
     i = cells.size - 1
+    cells[i].posible!
     until done
       c = cells[i]
       c.next!
@@ -266,12 +279,13 @@ end
 
 class Solver < Generator
 
+  attr_reader :grid, :dim
+
   def initialize(grid)
     @grid = grid
     @dim = grid.dim
     cells = []
     @grid.empty_cells.each do |cell|
-      cell.posible!
       cells << cell
       solve(cells)
     end
@@ -282,10 +296,12 @@ end
 
 end
 
-#dim = ARGV[0] || 9
-#s = Sudoku::Generator.new 2, dim.to_i
-#s.print_grid
+dim = ARGV[0] || 9
+#s = Sudoku::Generator.new 2, dim.to_i, :numeric
+s = Sudoku::Generator.new 2, dim.to_i, :alphabet
+s.print_grid
+#p s.grid.empty_cells.size
 #s.print_sudoku
 
-s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
-s.print_result
+#s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
+#s.print_result
