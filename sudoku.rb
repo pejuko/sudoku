@@ -54,16 +54,19 @@ class Grid < Array
     File.readlines(fname).each do |line|
       line.strip!
       next if line.empty? or line =~ /^#/
-      gr << line.split(/\s+/).map{|n| n.to_i}
+      gr << line.split(/\s+/).map{|n| n}
     end
+
+    chars = :numeric
+    chars = :alphabet if gr.flatten.map{|n| n.to_i}.uniq.size == 1
 
     throw "Wrong number of rows #{gr.size}" if gr.size==0 or gr.size!=gr[0].size
 
-    grid = Grid.new gr[0].size
+    grid = Grid.new gr[0].size, chars
     gr.size.times do |row|
       throw "Wrong number of columns: #{row}x#{gr[row].size}" if gr[row].size!=grid.size
       gr[row].size.times do |col|
-        grid[row][col] = gr[row][col]
+        grid[row][col] = (chars == :numeric) ? gr[row][col].to_i : gr[row][col]
       end
     end
 
