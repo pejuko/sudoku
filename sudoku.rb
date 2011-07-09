@@ -15,12 +15,12 @@ class Cell
     @grid[y][x] == @grid.zero
   end
 
-  def posible
-    @grid.posible(x,y)
+  def possible
+    @grid.possible(x,y)
   end
 
-  def posible!
-    @set = posible.sort_by{rand}
+  def possible!
+    @set = possible.sort_by{rand}
   end
 
   def try(value)
@@ -47,7 +47,7 @@ end
 
 class Grid < Array
 
-  attr_reader :dim, :sqsize, :digits, :zero
+  attr_reader :dim, :sqsize, :zero
 
   def self.read_file(fname)
     gr = []
@@ -76,15 +76,16 @@ class Grid < Array
     @dim = dim
 
     @zero = 0
+    @digits = "#{@dim}".size
     if chars == :alphabet
       @chars = ('a'..(('a'.ord+@dim-1).chr)).to_a
       @zero = '.'
+      @digits = 1
     else
       @chars = (1..@dim).to_a
     end
 
     super(@dim){Array.new(@dim){@zero}}
-    @digits = "#{@dim}".size
   end
 
   def empty_cells
@@ -113,7 +114,7 @@ class Grid < Array
     s
   end
 
-  def posible(x,y)
+  def possible(x,y)
     res = []
     @chars.each do |i|
       res << i if try(x,y,i)
@@ -188,8 +189,8 @@ class Grid < Array
           nums.size.times do |i|
             nums[i] = @zero if mask and not mask[row][x+i]
           end
-          template = nums.map{|n| " %#{digits}s" % (n==0 ? "." : n.to_s)}
-          oldprint( template.join(" ") + "  " )
+          template = nums.map{|n| " %#{@digits}s" % (n==0 ? "." : n.to_s)}
+          oldprint( template.join + " " )
         end
         puts "\n"
       end
@@ -245,7 +246,7 @@ class Generator
 
     done = false
     i = cells.size - 1
-    cells[i].posible!
+    cells[i].possible!
     until done
       c = cells[i]
       c.next!
@@ -255,7 +256,7 @@ class Generator
       else
         i += 1
         return true if i >= cells.size
-        cells[i].posible!
+        cells[i].possible!
       end
     end
   end
