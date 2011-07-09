@@ -28,11 +28,11 @@ class Cell
     @grid.try(@x, @y, value)
   end
 
-  def n
+  def value 
     @grid[y][x]
   end
 
-  def n=(value)
+  def value=(value)
     @grid[y][x] = value
   end
 
@@ -41,13 +41,21 @@ class Cell
   end
 
   def inspect
-    "@x=#{@x}, @y=#{@y}, n=#{n}, @set=#{@set}"
+    "#<#{self.class.name}:0x%x @x=#{@x}, @y=#{@y}, value=#{value}, @set=#{@set}>" % self.object_id
   end
 end
 
+
 class Grid < Array
-  def initialize
-    super(9){Array.new(9){0}}
+
+  attr_reader :dim, :sqsize, :digits
+
+  def initialize(dim)
+    @sqsize = Math.sqrt(dim).to_i
+    raise "Wrong dimension #{dim}" if @sqsize**2 != dim
+    @dim = dim
+    super(@dim){Array.new(@dim){0}}
+    @digits = "#{@dim}".size
   end
 
   def place(x,y,n)
@@ -68,7 +76,7 @@ class Grid < Array
 
   def posible(x,y)
     res = []
-    (1..9).each do |i|
+    (1..@dim).each do |i|
       res << i if try(x,y,i)
     end
     res
@@ -76,12 +84,12 @@ class Grid < Array
 
   def conflict?
     return false if self[0][0] == 0
-    9.times do |i|
+    @dim.times do |i|
       return false unless check_row(i)
       return false unless check_column(i)
     end
-    3.times do |y|
-      3.times do |x|
+    @sqsize.times do |y|
+      @sqsize.times do |x|
         return false unless check_square(x,y)
       end
     end
@@ -119,10 +127,12 @@ class Grid < Array
   end
 
   def get_square(x,y)
-    throw "wrong square number #{x}x#{y}" if x>2 or y>2
+#    throw "wrong square number #{x}x#{y}" if x>2 or y>2
     sq = []
-    (y*3).upto((y*3)+2) do |r|
-      (x*3).upto((x*3)+2) do |c|
+    row = y*@sqsize
+    cell = x*@sqsize
+    (row).upto(row+@sqsize-1) do |r|
+      (cell).upto(cell+@sqsize-1) do |c|
         sq << self[r][c]
       end
     end
@@ -131,14 +141,15 @@ class Grid < Array
 
   alias oldprint print
   def print(mask=nil)
-    0.step(8,3) do |y|
-      y.upto(y+2) do |row|
-        0.step(8,3) do |x|
-          nums = self[row][x,3]
+    0.step(@dim-1,@sqsize) do |y|
+      y.upto(y+@sqsize-1) do |row|
+        0.step(@dim-1,@sqsize) do |x|
+          nums = self[row][x,@sqsize]
           nums.size.times do |i|
             nums[i] = 0 if mask and not mask[row][x+i]
           end
-          oldprint " %d %d %d " % nums
+          template = " %#{@digits}d"*@sqsize + " "
+          oldprint( template % nums )
         end
         puts "\n"
       end
@@ -152,10 +163,11 @@ class Sudoku
 
   attr_reader :grid, :mask, :level
 
-  def initialize(level=0)
+  def initialize(level=0, dim=9)
     @level = level
-    @grid = Grid.new
-    @mask = Array.new(9){Array.new(9){true}}
+    @dim = dim
+    @grid = Grid.new @dim
+    @mask = Array.new(@dim){Array.new(@dim){true}}
     generate
     create_mask(level)
   end
@@ -177,10 +189,10 @@ class Sudoku
   def create_mask(level=0)
     loops = 0
     begin
-      @mask = Array.new(9){Array.new(9){true}}
-      9.times do |y|
-        gaps = rand(4) + 2 + level;
-        (0..8).to_a.sort_by{rand}[0,gaps].each do |i|
+      @mask = Array.new(@dim){Array.new(@dim){true}}
+      @dim.times do |y|
+        gaps = rand(@grid.sqsize/2) + level;
+        (0..(@dim-1)).to_a.sort_by{rand}[0,gaps].each do |i|
           @mask[y][i] = false
         end
       end
@@ -211,8 +223,8 @@ class Sudoku
   def generate
     x = y = 0
     cells = []
-    9.times do |y|
-      9.times do |x|
+    @dim.times do |y|
+      @dim.times do |x|
         cells << Cell.new(@grid, x, y)
         solve(cells)
       end
@@ -223,6 +235,7 @@ end
 
 end
 
-s = Sudoku::Sudoku.new 2
-s.print_grid
-#s.print_sudoku
+dim = ARGV[0] || 9
+s = Sudoku::Sudoku.new 2, dim.to_i
+#s.print_grid
+s.print_sudoku
