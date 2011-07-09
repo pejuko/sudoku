@@ -225,6 +225,7 @@ class Generator
 
   private
 
+  # TODO: find all solutions if more then one
   def solutions
     1
   end
