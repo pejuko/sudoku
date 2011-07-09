@@ -50,12 +50,43 @@ class Grid < Array
 
   attr_reader :dim, :sqsize, :digits
 
+  def self.read_file(fname)
+    gr = []
+    File.readlines(fname).each do |line|
+      line.strip!
+      next if line.empty? or line =~ /^#/
+      gr << line.split(/\s+/).map{|n| n.to_i}
+    end
+
+    throw "Wrong number of rows #{gr.size}" if gr.size==0 or gr.size!=gr[0].size
+
+    grid = Grid.new gr[0].size
+    gr.size.times do |row|
+      throw "Wrong number of columns: #{row}x#{gr[row].size}" if gr[row].size!=grid.size
+      gr[row].size.times do |col|
+        grid[row][col] = gr[row][col]
+      end
+    end
+
+    grid
+  end
+
   def initialize(dim)
     @sqsize = Math.sqrt(dim).to_i
     raise "Wrong dimension #{dim}" if @sqsize**2 != dim
     @dim = dim
     super(@dim){Array.new(@dim){0}}
     @digits = "#{@dim}".size
+  end
+
+  def empty_cells
+    cells=[]
+    @dim.times do |y|
+      @dim.times do |x|
+        cells << Cell.new(self,x,y) if self[y][x] == 0
+      end
+    end
+    cells
   end
 
   def place(x,y,n)
@@ -153,13 +184,13 @@ class Grid < Array
         end
         puts "\n"
       end
-      puts "\n"
+      puts "\n" if y<(@dim.size-2)
     end
   end
 
 end
 
-class Sudoku
+class Generator
 
   attr_reader :grid, :mask, :level
 
@@ -233,9 +264,28 @@ class Sudoku
 
 end
 
+class Solver < Generator
+
+  def initialize(grid)
+    @grid = grid
+    @dim = grid.dim
+    cells = []
+    @grid.empty_cells.each do |cell|
+      cell.posible!
+      cells << cell
+      solve(cells)
+    end
+  end
+
+  alias print_result print_grid
 end
 
-dim = ARGV[0] || 9
-s = Sudoku::Sudoku.new 2, dim.to_i
+end
+
+#dim = ARGV[0] || 9
+#s = Sudoku::Generator.new 2, dim.to_i
 #s.print_grid
-s.print_sudoku
+#s.print_sudoku
+
+s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
+s.print_result
