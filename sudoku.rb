@@ -188,12 +188,8 @@ class Grid < Array
           nums.size.times do |i|
             nums[i] = @zero if mask and not mask[row][x+i]
           end
-          if @zero == 0
-            template = " %#{@digits}d"*@sqsize + " "
-            oldprint( template % nums )
-          else
-            oldprint( nums.join(" ") + "  " )
-          end
+          template = nums.map{|n| " %#{digits}s" % (n==0 ? "." : n.to_s)}
+          oldprint( template.join(" ") + "  " )
         end
         puts "\n"
       end
@@ -296,12 +292,32 @@ end
 
 end
 
-dim = ARGV[0] || 9
-#s = Sudoku::Generator.new 2, dim.to_i, :numeric
-s = Sudoku::Generator.new 2, dim.to_i, :alphabet
-s.print_grid
-#p s.grid.empty_cells.size
-#s.print_sudoku
 
-#s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
-#s.print_result
+
+if __FILE__ == $0
+
+  level = 2
+  dim = 9
+  chars = :numeric
+  file_name = nil
+
+  if ARGV.size != 0
+    if File.exist? ARGV[0]
+      file_name = ARGV[0]
+      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
+      s.print_result
+    else
+      dim = ARGV.shift.to_i
+      level = ARGV.shift.to_i if ARGV.size > 0
+      chars = ARGV.shift.to_sym if ARGV.size > 0
+      s = Sudoku::Generator.new level, dim, chars
+      s.print_sudoku
+    end
+  else
+    puts <<-EOF
+    #{File.basename $0} <filename>
+    #{File.basename $0} <dimension> [level=<1..5>] [alphabet]
+    EOF
+  end
+
+end
