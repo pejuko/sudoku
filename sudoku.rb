@@ -184,8 +184,17 @@ class Grid < Array
 
   alias oldprint print
   def print(mask=nil)
+    oldprint to_s(mask)
+  end
+
+  def save(fname,mask=nil)
+    File.open(fname, "w"){|f| f << to_s}
+  end
+
+  def to_s(mask=nil)
+    str = ""
     0.step(@dim-1,@sqsize) do |y|
-      puts "\n" if y!=0
+      str << "\n" if y!=0
       y.upto(y+@sqsize-1) do |row|
         0.step(@dim-1,@sqsize) do |x|
           nums = self[row][x,@sqsize]
@@ -193,11 +202,12 @@ class Grid < Array
             nums[i] = @zero if mask and not mask[row][x+i]
           end
           template = nums.map{|n| " %#{@digits}s" % (n==0 ? "." : n.to_s)}
-          oldprint( template.join + " " )
+          str << template.join << " " 
         end
-        puts "\n"
+        str << "\n"
       end
     end
+    str
   end
 
 end
@@ -311,6 +321,7 @@ if __FILE__ == $0
       file_name = ARGV[0]
       s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
       s.print_result
+      #s.grid.save(ARGV[0]+'.result')
     else
       dim = ARGV.shift.to_i
       level = ARGV.shift.to_i if ARGV.size > 0
