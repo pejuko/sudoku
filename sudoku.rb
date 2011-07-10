@@ -165,14 +165,11 @@ class Grid < Array
   end
 
   def get_square(x,y)
-#    throw "wrong square number #{x}x#{y}" if x>2 or y>2
     sq = []
     row = y*@sqsize
     cell = x*@sqsize
-    (row).upto(row+@sqsize-1) do |r|
-      (cell).upto(cell+@sqsize-1) do |c|
-        sq << self[r][c]
-      end
+    row.upto(row+@sqsize-1) do |r|
+      sq += self[r][cell,3]
     end
     sq
   end
@@ -293,7 +290,8 @@ class Solver < Generator
     cells = []
     @grid.empty_cells.each do |cell|
       cells << cell
-      solve(cells)
+      solved = solve(cells)
+      throw "This Sudoku is impossible to solve" unless solved
     end
   end
 
