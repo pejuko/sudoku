@@ -47,7 +47,7 @@ end
 
 class Grid < Array
 
-  attr_reader :dim, :sqsize, :zero
+  attr_reader :dim, :sqsize, :zero, :chars
 
   def self.read_file(fname)
     gr = []
