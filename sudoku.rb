@@ -101,20 +101,15 @@ class Grid < Array
     cells
   end
 
-  def place(x,y,n)
-    old = self[y][x]
-    self[y][x] = n
-    return true if noconflict?
-    self[y][x] = old
-    false
-  end
-
   def try(x,y,n)
     old = self[y][x]
     self[y][x] = n
-    s = noconflict?
+
+    sx, sy = [x/@sqsize, y/@sqsize]
+    result = (check_row(y) and check_column(x) and check_square(sx,sy))
+
     self[y][x] = old
-    s
+    result
   end
 
   def possible(x,y)
@@ -126,7 +121,7 @@ class Grid < Array
   end
 
   def noconflict?
-    return false if self[0][0] == @zero
+    #return false if self[0][0] == @zero
     @dim.times do |i|
       return false unless check_row(i)
       return false unless check_column(i)
