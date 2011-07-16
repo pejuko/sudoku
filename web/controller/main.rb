@@ -29,7 +29,8 @@ class MainController < Controller
 
   def book
     unless request["download"].to_s.empty?
-      ref = %~%s/%s/%d/%d/%d/%d/%d/%d~ % [request["format"], request["chars"], request["level"].sort{|el| el[0].to_i}.map{|el|el[1]}].flatten
+      l = request["level"]
+      ref = %~%s/%s/%d/%d/%d/%d/%d/%d~ % [request["format"], request["chars"], (3..8).map{|i|l[i.to_s].to_i}].flatten
       redirect "/pdf/"+ref
     end
   end
@@ -42,8 +43,8 @@ class MainController < Controller
       c = count.to_i
       next if c<=0
       l = level + 3
-      pdf.text "Level #{level+1}", :align => :center, :size => 32
       c.times do |i|
+        pdf.text "Level #{l-2}", :align => :center, :size => 32
         w = pdf.bounds.top
         h = pdf.bounds.right
         pos = [
