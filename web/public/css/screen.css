@@ -155,3 +155,45 @@ ul, ol {
     background: -webkit-gradient(linear, left top, right top, from(#ad9), to(#e99));
     background-image: -moz-linear-gradient(left, #ad9, #e99);
 }
+
+.page_layout .lname, .page_layout input {
+    text-align: center;
+}
+
+.page_layout th {
+    text-align: right;
+    background: #cecece;
+}
+
+#menu {
+    position: absolute;
+    left: 0px;
+    top: 1em;
+    width: 150px;
+    height: 100px;
+}
+
+#menu ul {
+    padding:0;
+    margin: 0;
+    list-style-type: none;
+    border: 1px #999 solid;
+    border-bottom: none;
+    background: #ddd;
+}
+
+#menu li {
+    padding: 3px;
+    padding-left: 10px;
+    border-bottom: 1px #999 solid;
+}
+
+#menu li:hover {
+    background: #ccc;
+}
+
+#menu a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #333;
+}

@@ -5,6 +5,8 @@
 #  map '/otherurl'
 # this will force the controller to be mounted on: /otherurl
 
+require 'prawn'
+
 class MainController < Controller
 
   def index
@@ -25,7 +27,61 @@ class MainController < Controller
     handle_form
   end
 
+  def book
+    unless request["download"].to_s.empty?
+      ref = %~%s/%s/%d/%d/%d/%d/%d/%d~ % [request["format"], request["chars"], request["level"].sort{|el| el[0].to_i}.map{|el|el[1]}].flatten
+      redirect "/pdf/"+ref
+    end
+  end
+
+  def pdf(format, chars, *level)
+    pages = level.inject(0){|sum,c| sum += c.to_i}
+    throw "To many pages" if pages > 30
+    pdf = Prawn::Document.new(:page_size => format.upcase, :top_margin => 75)
+    level.each_with_index do |count, level|
+      c = count.to_i
+      next if c<=0
+      l = level + 3
+      pdf.text "Level #{level+1}", :align => :center, :size => 32
+      c.times do |i|
+        w = pdf.bounds.top
+        h = pdf.bounds.right
+        pos = [
+          [[h/2-257, w/2+257], [(h/2)+14, w/2+257]],
+          [[h/2-257, (w/2)-14], [(h/2)+14, (w/2)-14]]
+        ]
+        pos.each do |row|
+          row.each do |col|
+            pdf.bounding_box( col, :width => 255, :height => 255) do
+              pdf.font_size = 16
+              pdf.table(new_pdf_sudoku(l, chars.to_sym)) do
+                cells.style :width => 27, :height => 27, :align => :center, :font_style => :bold#, :valign => :center
+                style row(2), :border_bottom_width => 2
+                style row(5), :border_bottom_width => 2
+                style column(2), :border_right_width => 2
+                style column(5), :border_right_width => 2
+              end
+            end
+          end
+        end
+        pdf.start_new_page if pdf.page_count < pages
+      end
+    end
+    respond pdf.render, 200, {'Content-Type' => 'application/pdf'}
+  end
+
   private
+
+  def new_pdf_sudoku(l, chars)
+    s = Sudoku::Generator.new(l, 9, chars)
+    g = s.grid.dup
+    s.mask.each_with_index do |row, y|
+      row.each_with_index do |col, x|
+        g[y][x] = "" unless col
+      end
+    end
+    g
+  end
 
   def new_sudoku
     session[:sudoku] = Sudoku::Generator.new @level, @dim, @chars
