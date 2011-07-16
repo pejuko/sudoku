@@ -102,6 +102,7 @@ class MainController < Controller
     correct = true
     @solution.each_with_index do |row, y|
       row.each_with_index do |cell,x|
+        next if cell == nil
         correct = false if @sudoku.grid[y][x] != @solution[y][x]
       end
     end
@@ -113,6 +114,7 @@ class MainController < Controller
         @error = "False"
       end
     end
+    correct
   end
 
   def get_solution
@@ -123,7 +125,7 @@ class MainController < Controller
         @solution[y.to_i][x.to_i] = c unless cell.strip.empty?
       end
     end
-    session[:solution] = @solution
+    @solution = session[:solution] = @solution
   end
 
   def hint
