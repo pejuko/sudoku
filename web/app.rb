@@ -4,6 +4,7 @@
 # It will be required from either `config.ru` or `start.rb`
 
 require 'rubygems'
+require "bundler/setup"
 require 'ramaze'
 
 # Make sure that Ramaze knows where you are
