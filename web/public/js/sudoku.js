@@ -14,7 +14,7 @@ function setup()
 
 	// set hook for sending form
 	var form = document.forms[0];
-	form.onsubmit = function(e) {sendForm(form);};
+	if (form) form.onsubmit = function(e) {sendForm(form);};
 
 	// make menu clickable everywhere
 	menu = document.getElementById("menu");
@@ -28,11 +28,13 @@ function setup()
 
 	// create help for js ui
 	help = document.getElementById("help");
-	str = "<b>HELP: </b>"
-	str = str + "<em>click once</em> on small blue number to remember &nbsp;";
-	str = str + "<em>double-click</em> on small blue number to fill in &nbsp;";
-	str = str + "<em>double-click</em> on big blue number to correct &nbsp;";
-	help.innerHTML = str;
+	if (help) {
+		str = "<b>HELP: </b>"
+		str = str + "<em>click once</em> on small blue number to remember &nbsp;";
+		str = str + "<em>double-click</em> on small blue number to fill in &nbsp;";
+		str = str + "<em>double-click</em> on big blue number to correct &nbsp;";
+		help.innerHTML = str;
+	}
 }
 
 
