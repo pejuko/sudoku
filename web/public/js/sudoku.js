@@ -1,5 +1,6 @@
 function setup()
 {
+	// replace inputs with grids
 	var cells = getElementsByClass("td", "entry");
 	for(var i=0; i<cells.length; i++) {
 		var inputs = cells[i].getElementsByTagName("input");
@@ -11,8 +12,19 @@ function setup()
 		}
 	}
 
+	// set hook for sending form
 	var form = document.forms[0];
 	form.onsubmit = function(e) {sendForm(form);};
+
+	// make menu clickable everywhere
+	menu = document.getElementById("menu");
+	items = menu.getElementsByTagName("li");
+	for (var i=0; i<items.length; i++) {
+		items[i].onclick = function(e) { 
+			var a = this.getElementsByTagName("a")[0];
+			window.location = a.href;
+	       	};
+	}
 }
 
 
