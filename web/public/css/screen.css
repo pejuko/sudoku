@@ -240,3 +240,12 @@ ul, ol {
 #help {
     font-size: 80%;
 }
+
+#about table {
+    text-align: left;
+}
+
+#about th {
+    font-weight: bold;
+    padding-right: 10px;
+}
