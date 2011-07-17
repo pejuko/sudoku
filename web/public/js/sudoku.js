@@ -25,6 +25,14 @@ function setup()
 			window.location = a.href;
 	       	};
 	}
+
+	// create help for js ui
+	help = document.getElementById("help");
+	str = "<b>HELP: </b>"
+	str = str + "<em>click once</em> on small blue number to remember &nbsp;";
+	str = str + "<em>double-click</em> on small blue number to fill in &nbsp;";
+	str = str + "<em>double-click</em> on big blue number to correct &nbsp;";
+	help.innerHTML = str;
 }
 
 

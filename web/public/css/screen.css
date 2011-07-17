@@ -23,6 +23,8 @@ h1 {
 #content {
   padding: 1em;
   background: transparent;
+  margin-left: 150px;
+  margin-right: 150px;
 }
 
 p {
@@ -233,4 +235,8 @@ ul, ol {
 #sudoku .entry tr {
     padding: 0;
     margin: 0;
+}
+
+#help {
+    font-size: 80%;
 }
