@@ -10,7 +10,11 @@ Running web demo
 Usage from command line
 =======================
 
+Solve sudoku from file:
+
     sudoku.rb <filename>
+
+Generate new sudoku:
 
     sudoku.rb <dimension> [level=<1..5>] [alphabet]
 
