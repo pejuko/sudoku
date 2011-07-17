@@ -4,7 +4,9 @@
   bg = 'style="background:#c00"' if @error
 %>
 <center>
+
   <form method="POST">
+
     <div id="new" <%=bg%> >
       <select name="chars" class="button">
         <option value="numeric" <%= @chars==:numeric ? 'selected="true"' : '' %>>1..9</option>
@@ -18,39 +20,41 @@
       <input class="button" type="submit" name="new" value="generate" />
     </div>
 
-<table id="sudoku" name="sudoku">
-  <% @sudoku.grid.each_with_index do |row,y| %>
-    <tr>
-      <% row.each_with_index do |cell,x| %>
-        <% if @hints[y][x] %>
-          <td class="hint">
-            <%= cell %>
-        <% elsif @sudoku.mask[y][x] %>
-          <td>
-            <%= cell %>
-        <% elsif @show_solution and @solution[y][x] != cell %>
-          <td class="solution">
-            <%= cell %>
-        <% else %>
-          <td>
-            <input type="text" name="solution[<%=y%>][<%=x%>]" value="<%= @solution[y][x] %>" maxlength="1" />
-        <% end %>
-        </td>
-        <% if x<(row.size-1) and x%3 == 2 %>
-          <td class="empty">&nbsp;</td>
+    <table id="sudoku" name="sudoku">
+      <% @sudoku.grid.each_with_index do |row,y| %>
+        <tr>
+          <% row.each_with_index do |cell,x| %>
+            <% if @hints[y][x] %>
+              <td class="hint">
+                <%= cell %>
+            <% elsif @sudoku.mask[y][x] %>
+              <td>
+                <%= cell %>
+            <% elsif @show_solution and @solution[y][x] != cell %>
+              <td class="solution">
+                <%= cell %>
+            <% else %>
+              <td class="entry">
+                <input type="text" name="solution[<%=y%>][<%=x%>]" value="<%= @solution[y][x] %>" maxlength="1" />
+            <% end %>
+            </td>
+            <% if x<(row.size-1) and x%3 == 2 %>
+              <td class="empty">&nbsp;</td>
+            <% end %>
+          <% end %>
+        </tr>
+        <% if y<(@sudoku.grid.size-1) and y%3 == 2 %>
+          <tr class="empty"><td class="empty" cols="11">&nbsp;</td></tr>
         <% end %>
       <% end %>
-    </tr>
-    <% if y<(@sudoku.grid.size-1) and y%3 == 2 %>
-      <tr class="empty"><td class="empty" cols="11">&nbsp;</td></tr>
-    <% end %>
-  <% end %>
-</table>
-  <div id="controll" <%=bg%> >
-    <input class="button" type="submit" name="check" value="check" />
-    <input class="button" type="submit" name="hint" value="hint" />
-    <input class="button" type="submit" name="show_solution" value="solution" />
-  </div>
+    </table>
+
+    <div id="controll" <%=bg%> >
+      <input class="button" type="submit" name="check" value="check" />
+      <input class="button" type="submit" name="hint" value="hint" />
+      <input class="button" type="submit" name="show_solution" value="solution" />
+    </div>
+
   </form>
-  <br />
+
 </center>
