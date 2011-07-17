@@ -6,6 +6,9 @@ Running web demo
 
 [http://sudoku-game.heroku.com/](http://sudoku-game.heroku.com)
 
+* play on-line
+* print sudoku book
+
 
 Usage from command line
 =======================
