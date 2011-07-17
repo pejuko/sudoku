@@ -34,7 +34,7 @@
               <td class="solution">
                 <%= cell %>
             <% else %>
-              <td class="entry">
+              <td id="<%=y%>:<%=x%>" class="entry">
                 <input type="text" name="solution[<%=y%>][<%=x%>]" value="<%= @solution[y][x] %>" maxlength="1" />
             <% end %>
             </td>

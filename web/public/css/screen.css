@@ -86,7 +86,7 @@ ul, ol {
     margin: 0;
 }
 
-#sudoku input {
+#sudoku input, .entry {
     border: none;
     color: #00f;
     background: transparent;
@@ -196,4 +196,35 @@ ul, ol {
     text-decoration: none;
     font-weight: bold;
     color: #333;
+}
+
+.entry {
+    text-align: center;
+}
+
+#sudoku .entry table {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+#sudoku .entry td {
+    border: none;
+    font-size: 11px;
+    font-weight: normal;
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    margin: 0;
+}
+
+#sudoku .entry .selected {
+    font-weight: bold;
+}
+
+#sudoku .entry tr {
+    padding: 0;
+    margin: 0;
 }

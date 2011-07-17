@@ -14,9 +14,10 @@
     <meta name="author" content="Petr Kovář <pejuko@gmail.com>" />
     <meta name="date" content="<%= Time.now.iso8601 %>" />
     <%= css 'screen' %>
+    <%= js 'sudoku' %>
   </head>
 
-  <body>
+  <body onLoad="setup();">
 
     <div id="menu" name="menu">
       <ul>
