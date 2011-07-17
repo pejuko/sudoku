@@ -68,6 +68,7 @@ function showGrid(grid)
 	for (var i=0; i<cells.length; i+=1) {
 		cells[i].innerHTML = "" + (i+1);
 	}
+	grid.onmouseout = function(e){hideGrid(this); this.onmouseout=null;};
 }
 
 
