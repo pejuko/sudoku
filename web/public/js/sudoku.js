@@ -42,7 +42,7 @@ function prepareForm(form)
 {
 	inputs = form.getElementsByTagName("input");
 	for (var i=0; i<inputs.length; i++) {
-		if (inputs[i].name.match(/^solution\[.*/i)) {
+		if (inputs[i].name.match(/^solution|memory\[.*/i)) {
 			form.removeChild(inputs[i]);
 		}
 	}
@@ -80,6 +80,45 @@ function sendForm(form)
 	form.submit();
 }
 
+function getAjax()
+{
+	var xmlhttp;
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp=new XMLHttpRequest();
+	} else {// code for IE6, IE5
+		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	return xmlhttp;
+}
+
+function submitFormInBackground()
+{
+	var form = document.forms[0];
+
+	str = "";
+	entries = getElementsByClass(document, "td", "entry");
+	for (var i=0; i<entries.length; i++) {
+		var value = entries[i].innerHTML;
+		var coords = entries[i].id.match(/(\d+):(\d+)/);
+		var y = coords[1];
+		var x = coords[2];
+
+		if (entries[i].innerHTML.match(/^\s*\d+\s*$/i)) {
+			str = str + "solution["+y+"]["+x+"]=" + value + "&";
+		} else {
+
+			selected = getElementsByClass(entries[i], "td", "selected");
+			for (var j=0; j<selected.length; j++) {
+				str = str + "memory["+y+"]["+x+"][]=" + selected[j].innerHTML + "&";
+			}
+		}
+	}
+
+	xmlhttp = getAjax();
+	xmlhttp.open("GET","save?"+str,true);
+	xmlhttp.send();
+}
 
 function addGrid(cell)
 {
@@ -148,12 +187,14 @@ function select(element)
 	setTimeout( function() {
 		entry.ondblclick = function(e) {addGrid(entry); entry.ondblclick=null;};
 	}, 100);
+	submitFormInBackground();
 }
 
 
 function toggleSelected(element)
 {
 	element.className = (element.className == "") ? "selected" : "";
+	submitFormInBackground();
 }
 
 

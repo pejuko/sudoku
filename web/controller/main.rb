@@ -71,6 +71,14 @@ class MainController < Controller
     respond pdf.render, 200, {'Content-Type' => 'application/pdf'}
   end
 
+  def save(*args)
+    @sudoku = session[:sudoku]
+    @solution = session[:solution]
+    get_solution
+    get_memory
+    ""
+  end
+
   private
 
   def new_pdf_sudoku(l, chars)
