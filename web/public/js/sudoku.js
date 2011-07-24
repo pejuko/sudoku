@@ -1,7 +1,7 @@
 function setup()
 {
 	// replace inputs with grids
-	var cells = getElementsByClass("td", "entry");
+	var cells = getElementsByClass(document, "td", "entry");
 	for(var i=0; i<cells.length; i++) {
 		var inputs = cells[i].getElementsByTagName("input");
 		if ((inputs.length == 1) && !inputs[0].value.match(/^\s*$/)) {
@@ -38,7 +38,7 @@ function setup()
 }
 
 
-function sendForm(form)
+function prepareForm(form)
 {
 	inputs = form.getElementsByTagName("input");
 	for (var i=0; i<inputs.length; i++) {
@@ -47,21 +47,36 @@ function sendForm(form)
 		}
 	}
 
-	entries = getElementsByClass("td", "entry");
+	entries = getElementsByClass(document, "td", "entry");
 	for (var i=0; i<entries.length; i++) {
+		var value = entries[i].innerHTML;
+		var coords = entries[i].id.match(/(\d+):(\d+)/);
+		var y = coords[1];
+		var x = coords[2];
+
 		if (entries[i].innerHTML.match(/^\s*\d+\s*$/i)) {
-			var value = entries[i].innerHTML;
-			var coords = entries[i].id.match(/(\d+):(\d+)/);
-			var y = coords[1];
-			var x = coords[2];
-			input = document.createElement("input");
-			input.type = "hidden";
-			input.name = "solution["+y+"]["+x+"]";
-			input.value = value;
-			form.appendChild(input);
+			formAppendInput(form, "solution["+y+"]["+x+"]", "hidden", value);
+		} else {
+			selected = getElementsByClass(entries[i], "td", "selected");
+			for (var j=0; j<selected.length; j++) {
+				formAppendInput(form, "memory["+y+"]["+x+"][]", "hidden", selected[j].innerHTML);
+			}
 		}
 	}
+}
 
+function formAppendInput(form, name, type, value)
+{
+	input = document.createElement("input");
+	input.type = type;
+	input.name = name;
+	input.value = value;
+	form.appendChild(input);
+}
+
+function sendForm(form)
+{
+	prepareForm(form);
 	form.submit();
 }
 
@@ -73,7 +88,19 @@ function addGrid(cell)
 	for(var y=0; y<3; y++) {
 		str = str + "<tr>";
 		for(var x=0; x<3; x++) {
-			str = str + '<td onclick="toggleSelected(this);" ondblclick="select(this);">';
+			var coords = cell.id.match(/(\d+):(\d+)/);
+			var gy = coords[1];
+			var gx = coords[2];
+			var i = (y*3)+(x+1)
+
+			var cl = "";
+			if (memory!=null && memory[gy]!=null && memory[gy][gx]!=null && memory[gy][gx].indexOf(i)>=0) {
+				cl = ' class="selected"';
+			}
+			str = str + '<td onclick="toggleSelected(this);" ondblclick="select(this);"'+cl+'>';
+			if (cl != "") {
+				str = str + i;
+			}
 			str = str + "</td>";
 		}
 		str = str + "</tr>";
@@ -96,7 +123,7 @@ function showGrid(grid)
 
 function hideGrids()
 {
-	var cells = getElementsByClass("td", "entry");
+	var cells = getElementsByClass(document, "td", "entry");
 	for(var i=0; i<cells.length; i++) {
 		hideGrid(cells[i]);
 	}
@@ -130,9 +157,9 @@ function toggleSelected(element)
 }
 
 
-function getElementsByClass(tag, name)
+function getElementsByClass(element, tag, name)
 {
-	var elements = document.getElementsByTagName(tag);
+	var elements = element.getElementsByTagName(tag);
 	var result = [];
 	for (var i=0; i<elements.length; i++) {
 		if (elements[i].className != name) continue;

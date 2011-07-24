@@ -15,6 +15,19 @@
     <meta name="date" content="<%= Time.now.iso8601 %>" />
     <%= css 'screen' %>
     <%= js 'sudoku' %>
+    <script>
+    <% if @memory %>
+        var memory=[];
+        <% @memory.each do |y,row| %>
+          memory[<%=y%>] = [];
+          <% row.each do |x,cell| %>
+            memory[<%=y%>][<%=x%>] = [<%= cell.join(',') %>];
+          <% end %>
+        <% end %>
+    <% else %>
+      var memory = null;
+    <% end %>
+    </script>
   </head>
 
   <body onLoad="setup();">

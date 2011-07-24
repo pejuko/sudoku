@@ -89,10 +89,12 @@ class MainController < Controller
     session[:hints] = Array.new(@dim){Array.new(@dim){nil}}
     session[:solution] = Array.new(@dim){Array.new(@dim){nil}}
     request["solution"] = nil
+    request["memory"] = nil
   end
 
   def handle_form
     get_solution
+    get_memory
     check_solution unless request["check"].to_s.strip.empty?
     @show_solution = true unless request["show_solution"].to_s.strip.empty?
     hint unless request["hint"].to_s.strip.empty?
@@ -126,6 +128,11 @@ class MainController < Controller
       end
     end
     @solution = session[:solution] = @solution
+  end
+
+  def get_memory
+    session[:memory] = request["memory"] if request["memory"].kind_of?(Hash)
+    @memory = session[:memory]
   end
 
   def hint
