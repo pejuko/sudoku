@@ -1,5 +1,5 @@
 #require 'unprof'
-#require 'pp'
+require 'pp'
 
 module Sudoku
 
@@ -47,7 +47,7 @@ end
 
 class Grid < Array
 
-  attr_reader :dim, :sqsize, :zero, :chars
+  attr_reader :dim, :sqsize, :zero, :chars, :checks
 
   def self.read_file(fname)
     gr = []
@@ -78,6 +78,7 @@ class Grid < Array
     raise "Wrong dimension #{dim}" if @sqsize**2 != dim
     @dim = dim
 
+    @checks = 0
     @zero = 0
     @digits = "#{@dim}".size
     if chars == :alphabet
@@ -136,6 +137,7 @@ class Grid < Array
 
   def check(numbers)
     last = @zero
+    @checks += 1
     numbers.sort.each do |n|
       next if n == @zero
       return false if n == last
@@ -247,13 +249,18 @@ class Generator
     throw "too difficult" if loops > 100
   end
 
-  def solve(cells)
+  def solve(cells, time_limit=-1)
     return true if !cells or cells.empty?
 
+    st = Time.now 
     done = false
     i = cells.size - 1
     cells[i].possible!
     until done
+      if time_limit >= 0
+        run_time = Time.now - st
+        break if run_time > time_limit
+      end
       c = cells[i]
       c.next!
       if c.empty?
@@ -280,22 +287,163 @@ class Generator
 
 end
 
+
 class Solver < Generator
 
-  attr_reader :grid, :dim
+  attr_reader :grid, :dim, :difficulty, :solvable
 
-  def initialize(grid)
+  def initialize(grid, time_limit=60)
     @grid = grid
     @dim = grid.dim
-    cells = []
-    @grid.empty_cells.each do |cell|
-      cells << cell
-      solved = solve(cells)
-      throw "This Sudoku is impossible to solve" unless solved
+    @difficulty = 0
+    @solvable = solve_rules || solve_brute_force(time_limit)
+    @diffilulty = 99999999999 unless @solvable
+  end
+
+  private
+
+  def solve_rules
+#    @grid.print
+#    puts ""
+    rules = [OnlyChoiseRule, SinglePossibilityRule]
+    last = 81
+    empty_cells=@grid.empty_cells
+    while true
+      break if last == empty_cells.size
+      last = empty_cells.size
+      rules.each do |klass|
+#        puts klass.name
+        rule = klass.new(@grid)
+        res = rule.solve
+        @difficulty += rule.difficulty
+#        @grid.print
+#        puts "---"
+        empty_cells = @grid.empty_cells
+        return true if empty_cells.size==0
+      end
     end
+    false
+  end
+
+  def solve_brute_force(time_limit)
+#    puts "Brute Force"
+    @difficulty += 1000
+    cells = []
+    st = Time.now
+    empty_cells = @grid.empty_cells
+    empty_cells.each do |cell|
+      run_time = Time.now - st
+      return false if run_time > time_limit
+      cells << cell
+      solved = solve(cells, time_limit - run_time)
+      #throw "This Sudoku is impossible to solve" unless solved
+      return false unless solved
+    end
+    et = Time.now
+    true
   end
 
   alias print_result print_grid
+end
+
+
+class OnlyChoiseRule
+  attr_reader :difficulty, :loops
+
+  def initialize(grid, d=1)
+    @grid = grid
+    @difficulty = d
+    @loops = 0
+  end
+
+  def solve
+#    while true
+#      return true if @grid.empty_cells.empty?
+#      @loops += 1
+      res = solve_rows | solve_columns | solve_squares
+#      break unless res
+#    end
+#    false
+  end
+
+  private
+
+  def solve_group(cells)
+    empty_cells = []
+    cells.each{|c| empty_cells << c if c.empty?}
+    return true if empty_cells.empty?
+    if empty_cells == 1
+      empty_cells[0].possible!
+      empty_cells[0].next!
+      return true
+    end
+    false
+  end
+
+  def solve_rows
+    res = false
+    @grid.each_with_index do |row,y|
+      group = []
+      row.each_with_index{|c,x| group << Cell.new(@grid, x, y)}
+      res |= solve_group(group)
+    end
+    res
+  end
+
+  def solve_columns
+    res = false
+    @grid.dim.times do |x|
+      column = @grid.get_column(x)
+      column.each_with_index{|c,y| column[y] = Cell.new(@grid, x, y)}
+      res |= solve_group(column)
+    end
+    res
+  end
+
+  def solve_squares
+    res = false
+    @grid.sqsize.times do |y|
+      @grid.sqsize.times do |x|
+        square = @grid.get_square(x,y)
+        square.size.times do |i|
+          gy = (y*@grid.sqsize) + (i / @grid.sqsize)
+          gx = (x*@grid.sqsize) + (i % @grid.sqsize)
+          square[i] = Cell.new(@grid, gx, gy)
+        end
+        res |= solve_group(square)
+      end
+    end
+    res
+  end
+
+end
+
+
+class SinglePossibilityRule
+
+  attr_reader :difficulty, :loops
+
+  def initialize(grid, d=2)
+    @grid = grid
+    @difficulty = d
+    @loops = 0
+  end
+
+  def solve
+#    while true
+#      @loops += 1
+      empty_cells = @grid.empty_cells
+      return true if empty_cells.empty?
+      empty_cells.each{|c| c.possible!}
+      empty_cells.sort_by!{|c| c.set.size}
+      return if empty_cells.first.set.size>1
+      while empty_cells.size>0 and empty_cells[0].set.size==1
+        c = empty_cells.shift
+        c.next!
+      end
+#    end
+#    false
+  end
 end
 
 end
@@ -314,6 +462,9 @@ if __FILE__ == $0
       file_name = ARGV[0]
       s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
       s.print_result
+      puts "checks: #{s.grid.checks}"
+      puts "difficulty: #{s.difficulty}"
+      puts "solvable: #{s.solvable}"
       #s.grid.save(ARGV[0]+'.result')
     else
       dim = ARGV.shift.to_i
