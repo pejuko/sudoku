@@ -330,10 +330,13 @@ class Solver < Generator
     @difficulty += 1000
     cells = []
     st = Time.now
+    run_time = 0
     empty_cells = @grid.empty_cells
     empty_cells.each do |cell|
-      run_time = Time.now - st
-      return false if run_time > time_limit
+      if time_limit >= 0
+        run_time = Time.now - st
+        return false if run_time > time_limit
+      end
       cells << cell
       solved = solve(cells, time_limit - run_time)
       #throw "This Sudoku is impossible to solve" unless solved
@@ -460,7 +463,7 @@ if __FILE__ == $0
   if ARGV.size != 0
     if File.exist? ARGV[0]
       file_name = ARGV[0]
-      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
+      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0]), -1
       s.print_result
       puts "checks: #{s.grid.checks}"
       puts "difficulty: #{s.difficulty}"

@@ -35,11 +35,11 @@ Create new sudoku:
     sudoku = Sudoku::Genearator.new level, dimension, type
     sudoku.print_sudoku
 
-Solve sudoku:
+Solve sudoku with time limit 60 secods:
 
     require 'sudoku'
 
-    sudoku = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
+    sudoku = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0]), 60
     sudoku.print_result
 
 
