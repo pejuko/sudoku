@@ -46,7 +46,7 @@ Solve sudoku with time limit 60 secods:
 Solver
 ======
 
-Solver firstly tries solve a grid with [http://www.sudokudragon.com/sudokustrategy.htm](rules) 
+Solver firstly tries solve a grid with [rules](http://www.sudokudragon.com/sudokustrategy.htm) 
 before brute force method. Brute force method can be limited with time.
 
 Implemented rules:
