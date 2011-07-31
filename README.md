@@ -41,3 +41,16 @@ Solve sudoku:
 
     sudoku = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
     sudoku.print_result
+
+
+Solver
+======
+
+Solver firstly tries solve a grid with [http://www.sudokudragon.com/sudokustrategy.htm](rules) 
+before brute force method. Brute force method can be limited with time.
+
+Implemented rules:
+
+* Only choice rule
+* Single possibility rule
+
