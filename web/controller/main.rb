@@ -86,9 +86,10 @@ class MainController < Controller
     g = s.grid.dup
     s.mask.each_with_index do |row, y|
       row.each_with_index do |col, x|
-        g[y][x] = "" unless col
+        g[y][x].value = "" unless col
       end
     end
+    g.each{|row|row.map!{|c|c.value}}
     g
   end
 
@@ -113,7 +114,7 @@ class MainController < Controller
     @solution.each_with_index do |row, y|
       row.each_with_index do |cell,x|
         next if cell == nil
-        correct = false if @sudoku.grid[y][x] != @solution[y][x]
+        correct = false if @sudoku.grid[y][x].value != @solution[y][x]
       end
     end
 

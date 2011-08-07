@@ -4,15 +4,17 @@ require 'pp'
 module Sudoku
 
 class Cell
-  attr_accessor :x, :y, :set
+  attr_accessor :x, :y, :value, :set
 
-  def initialize(g, x, y)
+  def initialize(g, x, y, v=nil)
     @grid = g
     @x, @y = x, y
+    @value = v || @grid.zero
+    @set = []
   end
 
   def empty?
-    @grid[y][x] == @grid.zero
+    @value == @grid.zero
   end
 
   def possible
@@ -27,20 +29,16 @@ class Cell
     @grid.try(@x, @y, value)
   end
 
-  def value 
-    @grid[y][x]
-  end
-
-  def value=(value)
-    @grid[y][x] = value
-  end
-
   def next!
-    @grid[y][x] = @set.shift || @grid.zero
+    @value = @set.shift || @grid.zero
+  end
+
+  def to_s
+    @value.to_s
   end
 
   def inspect
-    "#<#{self.class.name}:0x%x @x=#{@x}, @y=#{@y}, value=#{value}, @set=#{@set}>" % self.object_id
+    "#<#{self.class.name}:0x%x @x=#{@x}, @y=#{@y}, value=#{@value}, @set=#{@set}>" % self.object_id
   end
 end
 
@@ -66,7 +64,7 @@ class Grid < Array
     gr.size.times do |row|
       throw "Wrong number of columns: #{row}x#{gr[row].size}" if gr[row].size!=grid.size
       gr[row].size.times do |col|
-        grid[row][col] = (chars == :numeric) ? gr[row][col].to_i : gr[row][col]
+        grid[row][col].value = (chars == :numeric) ? gr[row][col].to_i : gr[row][col]
       end
     end
 
@@ -90,26 +88,25 @@ class Grid < Array
     end
 
     super(@dim){Array.new(@dim){@zero}}
+    each_with_index do |row,y|
+      row.each_with_index do |cell,x|
+        self[y][x] = Cell.new self, x, y, @zero
+      end
+    end
   end
 
   def empty_cells
-    cells=[]
-    @dim.times do |y|
-      @dim.times do |x|
-        cells << Cell.new(self,x,y) if self[y][x] == @zero
-      end
-    end
-    cells
+    flatten.select{|c| c.empty?}
   end
 
   def try(x,y,n)
-    old = self[y][x]
-    self[y][x] = n
+    old = self[y][x].value
+    self[y][x].value = n
 
     sx, sy = [x/@sqsize, y/@sqsize]
     result = (check_row(y) and check_column(x) and check_square(sx,sy))
 
-    self[y][x] = old
+    self[y][x].value = old
     result
   end
 
@@ -135,13 +132,13 @@ class Grid < Array
     true
   end
 
-  def check(numbers)
+  def check(cells)
     last = @zero
     @checks += 1
-    numbers.sort.each do |n|
-      next if n == @zero
-      return false if n == last
-      last = n
+    cells.sort_by{|c|c.value}.each do |c|
+      next if c.empty?
+      return false if c.value == last
+      last = c.value
     end
     true
   end
@@ -191,7 +188,7 @@ class Grid < Array
       str << "\n" if y!=0
       y.upto(y+@sqsize-1) do |row|
         0.step(@dim-1,@sqsize) do |x|
-          nums = self[row][x,@sqsize]
+          nums = self[row][x,@sqsize].map{|c| c.value}
           nums.size.times do |i|
             nums[i] = @zero if mask and not mask[row][x+i]
           end
@@ -277,9 +274,9 @@ class Generator
   def generate
     x = y = 0
     cells = []
-    @dim.times do |y|
-      @dim.times do |x|
-        cells << Cell.new(@grid, x, y)
+    @grid.each_with_index do |row,y|
+      row.each_with_index do |cell,x|
+        cells << cell
         solve(cells)
       end
     end
@@ -305,7 +302,7 @@ class Solver < Generator
   def solve_rules
 #    @grid.print
 #    puts ""
-    rules = [OnlyChoiseRule, SinglePossibilityRule]
+    rules = [OnlyChoiseRule, SinglePossibilityRule, SubGroupExclusionRule]
     last = 81
     empty_cells=@grid.empty_cells
     while true
@@ -394,9 +391,7 @@ class OnlyChoiseRule < Rule
   def solve_rows
     res = false
     @grid.each_with_index do |row,y|
-      group = []
-      row.each_with_index{|c,x| group << Cell.new(@grid, x, y)}
-      res |= solve_group(group)
+      res |= solve_group(row)
     end
     res
   end
@@ -405,7 +400,6 @@ class OnlyChoiseRule < Rule
     res = false
     @grid.dim.times do |x|
       column = @grid.get_column(x)
-      column.each_with_index{|c,y| column[y] = Cell.new(@grid, x, y)}
       res |= solve_group(column)
     end
     res
@@ -416,11 +410,13 @@ class OnlyChoiseRule < Rule
     @grid.sqsize.times do |y|
       @grid.sqsize.times do |x|
         square = @grid.get_square(x,y)
+=begin
         square.size.times do |i|
           gy = (y*@grid.sqsize) + (i / @grid.sqsize)
           gx = (x*@grid.sqsize) + (i % @grid.sqsize)
           square[i] = Cell.new(@grid, gx, gy)
         end
+=end
         res |= solve_group(square)
       end
     end
