@@ -350,13 +350,21 @@ class Solver < Generator
 end
 
 
-class OnlyChoiseRule
+class Rule
+
   attr_reader :difficulty, :loops
 
-  def initialize(grid, d=1)
+  def initialize(grid, d)
     @grid = grid
     @difficulty = d
     @loops = 0
+  end
+
+end
+
+class OnlyChoiseRule < Rule
+  def initialize(grid, d=1)
+    super
   end
 
   def solve
@@ -422,16 +430,12 @@ class OnlyChoiseRule
 end
 
 
-class SinglePossibilityRule
-
-  attr_reader :difficulty, :loops
+class SinglePossibilityRule < Rule
 
   def initialize(grid, d=2)
-    @grid = grid
-    @difficulty = d
-    @loops = 0
+    super
   end
-
+ 
   def solve
 #    while true
 #      @loops += 1
@@ -447,6 +451,18 @@ class SinglePossibilityRule
 #    end
 #    false
   end
+end
+
+
+class SubGroupExclusionRule < Rule
+
+  def initialize(grid, d=10)
+    super
+  end
+
+  def solve
+  end
+
 end
 
 end
