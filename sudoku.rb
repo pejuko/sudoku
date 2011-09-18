@@ -549,11 +549,13 @@ if __FILE__ == $0
   if ARGV.size != 0
     if File.exist? ARGV[0]
       file_name = ARGV[0]
-      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0]), -1
+      tl = (ARGV[1] || -1).to_i
+      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0]), tl
       s.print_result
       puts "checks: #{s.grid.checks}"
       puts "difficulty: #{s.difficulty}"
       puts "solvable: #{s.solvable}"
+      puts "time limit: #{tl}"
       #s.grid.save(ARGV[0]+'.result')
     else
       dim = ARGV.shift.to_i
@@ -564,8 +566,8 @@ if __FILE__ == $0
     end
   else
     puts <<-EOF
-    #{File.basename $0} <filename>
-    #{File.basename $0} <dimension> [level=<1..5>] [alphabet]
+    #{File.basename $0} <filename> [timelimit (0==off, -1==inf)]
+    #{File.basename $0} <dimension> [level from <1..5>] [alphabet]
     EOF
   end
 
