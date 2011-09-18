@@ -17,6 +17,10 @@ class Cell
     @value == @grid.zero
   end
 
+  def clear!
+    @value = @grid.zero
+  end
+
   def possible
     @grid.possible(x,y)
   end
@@ -91,6 +95,14 @@ class Grid < Array
     each_with_index do |row,y|
       row.each_with_index do |cell,x|
         self[y][x] = Cell.new self, x, y, @zero
+      end
+    end
+  end
+
+  def apply_mask(mask)
+    each_with_index do |row,y|
+      row.each_with_index do |cell,x|
+        cell.clear! unless mask[y][x]
       end
     end
   end
