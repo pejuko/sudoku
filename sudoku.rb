@@ -312,7 +312,7 @@ class Solver < Generator
 #        puts klass.name
         rule = klass.new(@grid)
         res = rule.solve
-        @difficulty += rule.difficulty
+        @difficulty += rule.difficulty if res
 #        @grid.print
 #        puts "---"
         empty_cells = @grid.empty_cells
@@ -324,7 +324,7 @@ class Solver < Generator
 
   def solve_brute_force(time_limit)
 #    puts "Brute Force"
-    @difficulty += 1000
+    @difficulty += 10000
     cells = []
     st = Time.now
     run_time = 0
@@ -463,6 +463,7 @@ class OnlySquareRule < Rule
   end
 
   def solve
+    false
   end
 
 end
@@ -476,6 +477,7 @@ class TwoOutOfThreeRule < Rule
   end
 
   def solve
+    false
   end
 
 end
@@ -489,6 +491,7 @@ class SubGroupExclusionRule < Rule
   end
 
   def solve
+    false
   end
 
 end
@@ -501,6 +504,7 @@ class HiddenTwinExclusionRule < Rule
   end
 
   def solve
+    false
   end
 
 end
@@ -513,6 +517,7 @@ class NakedTwinExclusionRule < Rule
   end
 
   def solve
+    false
   end
 
 end
@@ -525,6 +530,7 @@ class XWingRule < Rule
   end
 
   def solve
+    false
   end
 
 end
@@ -537,6 +543,7 @@ class SwordFishRule < Rule
   end
 
   def solve
+    false
   end
 
 end
