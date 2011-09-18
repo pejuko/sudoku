@@ -302,13 +302,13 @@ class Solver < Generator
   def solve_rules
 #    @grid.print
 #    puts ""
-    rules = [OnlyChoiseRule, SinglePossibilityRule, SubGroupExclusionRule]
+    #rules = [OnlyChoiseRule, SinglePossibilityRule, SubGroupExclusionRule]
     last = 81
     empty_cells=@grid.empty_cells
     while true
       break if last == empty_cells.size
       last = empty_cells.size
-      rules.each do |klass|
+      Rule::RULES.each do |klass|
 #        puts klass.name
         rule = klass.new(@grid)
         res = rule.solve
@@ -348,6 +348,12 @@ end
 
 
 class Rule
+
+  RULES = []
+
+  def self.inherited(klass)
+    RULES << klass
+  end
 
   attr_reader :difficulty, :loops
 
