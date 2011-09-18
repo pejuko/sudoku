@@ -450,9 +450,83 @@ class SinglePossibilityRule < Rule
 end
 
 
+class OnlySquareRule < Rule
+
+  def initialize(grid, d=3)
+    super
+  end
+
+  def solve
+  end
+
+end
+
+
+=begin
+class TwoOutOfThreeRule < Rule
+
+  def initialize(grid, d=3)
+    super
+  end
+
+  def solve
+  end
+
+end
+=end
+
+
 class SubGroupExclusionRule < Rule
 
   def initialize(grid, d=10)
+    super
+  end
+
+  def solve
+  end
+
+end
+
+
+class HiddenTwinExclusionRule < Rule
+
+  def initialize(grid, d=11)
+    super
+  end
+
+  def solve
+  end
+
+end
+
+
+class NakedTwinExclusionRule < Rule
+
+  def initialize(grid, d=12)
+    super
+  end
+
+  def solve
+  end
+
+end
+
+
+class XWingRule < Rule
+
+  def initialize(grid, d=100)
+    super
+  end
+
+  def solve
+  end
+
+end
+
+
+class SwordFishRule < Rule
+
+  def initialize(grid, d=110)
     super
   end
 
