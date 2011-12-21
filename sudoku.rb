@@ -83,6 +83,7 @@ class Grid < Array
     @checks = 0
     @zero = 0
     @digits = "#{@dim}".size
+    @chars_name = chars
     if chars == :alphabet
       @chars = ('a'..(('a'.ord+@dim-1).chr)).to_a
       @zero = '.'
@@ -91,6 +92,7 @@ class Grid < Array
       @chars = (1..@dim).to_a
     end
 
+    @mask = Array.new(@dim){Array.new(@dim){true}}
     super(@dim){Array.new(@dim){@zero}}
     each_with_index do |row,y|
       row.each_with_index do |cell,x|
@@ -99,10 +101,19 @@ class Grid < Array
     end
   end
 
+  def dup
+    g = Grid.new @dim, @chars_name
+    flatten.each do |cell|
+      g[cell.y][cell.x].value = cell.value
+    end
+    g
+  end
+
   def apply_mask(mask)
     each_with_index do |row,y|
       row.each_with_index do |cell,x|
         cell.clear! unless mask[y][x]
+        @mask[y][x] = mask[y][x]
       end
     end
   end
@@ -240,7 +251,10 @@ class Generator
 
   # TODO: find all solutions if more then one
   def solutions
-    1
+    g = @grid.dup
+    g.apply_mask @mask
+    s = Solver.new g
+    s.find_solutions
   end
 
   def create_mask(level=0)
@@ -254,7 +268,7 @@ class Generator
         end
       end
       loops += 1
-    end while (solutions != 1) or (loops > 100)
+    end while (solutions.size != 1) or (loops > 100)
     throw "too difficult" if loops > 100
   end
 
@@ -264,7 +278,7 @@ class Generator
     st = Time.now 
     done = false
     i = cells.size - 1
-    cells[i].possible!
+    #cells[i].possible!
     until done
       if time_limit >= 0
         run_time = Time.now - st
@@ -288,6 +302,7 @@ class Generator
     cells = []
     @grid.each_with_index do |row,y|
       row.each_with_index do |cell,x|
+        cell.possible!
         cells << cell
         solve(cells)
       end
@@ -299,17 +314,28 @@ end
 
 class Solver < Generator
 
-  attr_reader :grid, :dim, :difficulty, :solvable
+  attr_reader :grid, :dim, :difficulty
 
   def initialize(grid, time_limit=60)
     @grid = grid
     @dim = grid.dim
     @difficulty = 0
-    @solvable = solve_rules || solve_brute_force(time_limit)
-    @diffilulty = 99999999999 unless @solvable
+    @time_limit = time_limit
+#    @solvable = solve_rules || solve_brute_force(time_limit)
+#    @diffilulty = 99999999999 unless @solvable
+    @solutions = []
   end
 
-  private
+  def find_solutions
+    empty_cells = @grid.empty_cells
+    res = solve_brute_force @time_limit
+    while res
+      @solutions << @grid.dup
+      empty_cells.last.clear!
+      res = solve(empty_cells, @time_limit)
+    end
+    @solutions
+  end
 
   def solve_rules
 #    @grid.print
@@ -346,6 +372,7 @@ class Solver < Generator
         run_time = Time.now - st
         return false if run_time > time_limit
       end
+      cell.possible!
       cells << cell
       solved = solve(cells, time_limit - run_time)
       #throw "This Sudoku is impossible to solve" unless solved
@@ -569,16 +596,21 @@ if __FILE__ == $0
   file_name = nil
 
   if ARGV.size != 0
-    if File.exist? ARGV[0]
+    if ARGV.size==1 and File.exist?(ARGV[0])
       file_name = ARGV[0]
-      tl = (ARGV[1] || -1).to_i
-      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0]), tl
+      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0])
+      solvable = s.solve_rules
+      solvable ||= s.solve_brute_force 60
       s.print_result
       puts "checks: #{s.grid.checks}"
       puts "difficulty: #{s.difficulty}"
-      puts "solvable: #{s.solvable}"
-      puts "time limit: #{tl}"
+      puts "solvable: #{solvable}"
       #s.grid.save(ARGV[0]+'.result')
+    elsif File.exist? ARGV[0]
+      file_name = ARGV[0]
+      tl = (ARGV[1] || -1).to_i
+      s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0]), tl
+      s.find_solutions.each { |s| s.print; puts "-"*20 }
     else
       dim = ARGV.shift.to_i
       level = ARGV.shift.to_i if ARGV.size > 0
@@ -588,7 +620,8 @@ if __FILE__ == $0
     end
   else
     puts <<-EOF
-    #{File.basename $0} <filename> [timelimit (0==off, -1==inf)]
+    #{File.basename $0} <filename>
+    #{File.basename $0} <filename> <timelimit (0==off, -1==inf)>
     #{File.basename $0} <dimension> [level from <1..5>] [alphabet]
     EOF
   end
