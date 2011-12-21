@@ -321,9 +321,9 @@ class Solver < Generator
       break if last == empty_cells.size
       last = empty_cells.size
       Rule::RULES.each do |klass|
-#        puts klass.name
         rule = klass.new(@grid)
         res = rule.solve
+        puts klass.name if res
         @difficulty += rule.difficulty if res
 #        @grid.print
 #        puts "---"
@@ -397,8 +397,8 @@ class OnlyChoiseRule < Rule
   def solve_group(cells)
     empty_cells = []
     cells.each{|c| empty_cells << c if c.empty?}
-    return true if empty_cells.empty?
-    if empty_cells == 1
+    return false if empty_cells.empty?
+    if empty_cells.size == 1
       empty_cells[0].possible!
       empty_cells[0].next!
       return true
@@ -451,19 +451,18 @@ class SinglePossibilityRule < Rule
   end
  
   def solve
-#    while true
-#      @loops += 1
-      empty_cells = @grid.empty_cells
-      return true if empty_cells.empty?
-      empty_cells.each{|c| c.possible!}
-      empty_cells.sort_by!{|c| c.set.size}
-      return if empty_cells.first.set.size>1
-      while empty_cells.size>0 and empty_cells[0].set.size==1
-        c = empty_cells.shift
-        c.next!
-      end
-#    end
-#    false
+    res = false
+    empty_cells = @grid.empty_cells
+    return false if empty_cells.empty?
+    empty_cells.each{|c| c.possible!}
+    empty_cells.sort_by!{|c| c.set.size}
+    return false if empty_cells.first.set.size>1
+    while empty_cells.size>0 and empty_cells[0].set.size==1
+      res = true
+      c = empty_cells.shift
+      c.next!
+    end
+    res
   end
 end
 
@@ -481,7 +480,6 @@ class OnlySquareRule < Rule
 end
 
 
-=begin
 class TwoOutOfThreeRule < Rule
 
   def initialize(grid, d=3)
@@ -493,7 +491,6 @@ class TwoOutOfThreeRule < Rule
   end
 
 end
-=end
 
 
 class SubGroupExclusionRule < Rule
