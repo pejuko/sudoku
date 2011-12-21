@@ -409,6 +409,10 @@ class Rule
 
 end
 
+
+##
+# only one cell left empty in group (row, column, square)
+#
 class OnlyChoiseRule < Rule
   def initialize(grid, d=1)
     super
@@ -476,9 +480,46 @@ class OnlyChoiseRule < Rule
 end
 
 
-class SinglePossibilityRule < Rule
+##
+# (slicing and slotting)
+# from 1 to 9 check two columns and rows out of three and if the number
+# is present in all four groups only one cell left where it must be
+#
+class TwoOutOfThreeRule < Rule
 
   def initialize(grid, d=2)
+    super
+  end
+
+  def solve
+    false
+  end
+
+end
+
+
+##
+# other squares already contains particular number so it must
+# be in this one in given row or column
+class OnlySquareRule < Rule
+
+  def initialize(grid, d=3)
+    super
+  end
+
+  def solve
+    false
+  end
+
+end
+
+
+##
+# single possibility for one cell
+#
+class SinglePossibilityRule < Rule
+
+  def initialize(grid, d=4)
     super
   end
  
@@ -499,32 +540,11 @@ class SinglePossibilityRule < Rule
 end
 
 
-class OnlySquareRule < Rule
-
-  def initialize(grid, d=3)
-    super
-  end
-
-  def solve
-    false
-  end
-
-end
-
-
-class TwoOutOfThreeRule < Rule
-
-  def initialize(grid, d=3)
-    super
-  end
-
-  def solve
-    false
-  end
-
-end
-
-
+##
+# if a possible number can be only in one row or column we can exclude
+# this number from other possibilities in other squares for this row/column.
+# (reduce the search space)
+#
 class SubGroupExclusionRule < Rule
 
   def initialize(grid, d=10)
@@ -538,6 +558,11 @@ class SubGroupExclusionRule < Rule
 end
 
 
+##
+# (triplet exclusion rule)
+# if there are two same pairs of numbers in two different squares and none 
+# of them is possible elsewhere it is possible to exclude others possibilities
+#
 class HiddenTwinExclusionRule < Rule
 
   def initialize(grid, d=11)
@@ -551,6 +576,11 @@ class HiddenTwinExclusionRule < Rule
 end
 
 
+##
+# if there are two cells with two same numbers possible and not anything else
+# then in those cells must be those two numbers and they can be excluded from
+# other cells possibilities
+#
 class NakedTwinExclusionRule < Rule
 
   def initialize(grid, d=12)
@@ -564,6 +594,11 @@ class NakedTwinExclusionRule < Rule
 end
 
 
+##
+# if a number possibilities accross whole grid form a corners of a box
+# and they are only two possible locations on row/column then possibilities
+# in other column/row cells can be excluded
+#
 class XWingRule < Rule
 
   def initialize(grid, d=100)
@@ -577,6 +612,20 @@ class XWingRule < Rule
 end
 
 
+##
+# similar to xwing but one corner of the box is extended and is also corner
+# of another box:
+#
+#         1       1
+#
+#
+#  1      +       1
+#
+#  1      1
+#
+# other one's possibilities can be excluded (except those six) in six different
+# squares
+#
 class SwordFishRule < Rule
 
   def initialize(grid, d=110)
