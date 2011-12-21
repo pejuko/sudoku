@@ -326,10 +326,15 @@ class Solver < Generator
     @solutions = []
   end
 
-  def find_solutions
+  def find_solutions keep=false
+    st = Time.now
     empty_cells = @grid.empty_cells
     res = solve_brute_force @time_limit
     while res
+      if @time_limit>0 and (Time.now-st) > @time_limit
+        @solutions = [] unless keep
+        break
+      end
       @solutions << @grid.dup
       empty_cells.last.clear!
       res = solve(empty_cells, @time_limit)
@@ -610,7 +615,12 @@ if __FILE__ == $0
       file_name = ARGV[0]
       tl = (ARGV[1] || -1).to_i
       s = Sudoku::Solver.new Sudoku::Grid.read_file(ARGV[0]), tl
-      s.find_solutions.each { |s| s.print; puts "-"*20 }
+      st = Time.now
+      solutions = s.find_solutions(true)
+      et = Time.now
+      solutions.each { |s| s.print; puts "-"*20 }
+      puts "solutions: #{solutions.size}"
+      puts "time: #{et-st}"
     else
       dim = ARGV.shift.to_i
       level = ARGV.shift.to_i if ARGV.size > 0
