@@ -13,6 +13,13 @@ class Cell
     @set = []
   end
 
+  alias :row :y
+  alias :column :x
+
+  def square
+    @grid.get_square @x/@grid.sqsize, @y/@grid.sqsize
+  end
+
   def empty?
     @value == @grid.zero
   end
@@ -492,7 +499,47 @@ class TwoOutOfThreeRule < Rule
   end
 
   def solve
-    false
+    res = false
+    empty_cells = @grid.empty_cells
+    empty_cells.each do |cell|
+      r1=r2=c1=c2=nil
+      if (cell.row % @grid.sqsize) == 0
+        r1 = @grid[cell.row+1]
+        r2 = @grid[cell.row+2]
+      elsif (cell.row % @grid.sqsize) == (@grid.sqsize - 1)
+        r1 = @grid[cell.row-1]
+        r2 = @grid[cell.row-2]
+      else
+        r1 = @grid[cell.row-1]
+        r2 = @grid[cell.row+1]
+      end
+      if (cell.column % @grid.sqsize) == 0
+        c1 = @grid.get_column cell.column+1
+        c2 = @grid.get_column cell.column+2
+      elsif (cell.column % @grid.sqsize) == (@grid.sqsize - 1)
+        c1 = @grid.get_column cell.column-1
+        c2 = @grid.get_column cell.column-2
+      else
+        c1 = @grid.get_column cell.column-1
+        c2 = @grid.get_column cell.column+1
+      end
+      square = cell.square.map{|sq| sq.value}
+      @grid.chars.select{|ch| not square.include?(ch)}.each do |n|
+        exists = true
+        [r1,r2,c1,c2].each do |g|
+          if g.select{|c| c.value == n}.empty?
+            exists = false
+            break
+          end
+        end
+        if exists
+          cell.value = n
+          res = true
+          break
+        end
+      end
+    end
+    res
   end
 
 end
