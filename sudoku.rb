@@ -4,6 +4,8 @@ require 'pp'
 module Sudoku
 
 class Cell
+  include Comparable
+
   attr_accessor :x, :y, :value, :set
 
   def initialize(g, x, y, v=nil)
@@ -15,6 +17,10 @@ class Cell
 
   alias :row :y
   alias :column :x
+
+  def == o
+    @x==o.x and @y==o.y and @value==o.value
+  end
 
   def square
     @grid.get_square @x/@grid.sqsize, @y/@grid.sqsize
@@ -56,7 +62,7 @@ end
 
 class Grid < Array
 
-  attr_reader :dim, :sqsize, :zero, :chars, :checks
+  attr_reader :dim, :sqsize, :zero, :chars, :chars_name, :checks
 
   def self.read_file(fname)
     gr = []
@@ -106,6 +112,16 @@ class Grid < Array
         self[y][x] = Cell.new self, x, y, @zero
       end
     end
+  end
+
+  def == o
+    return false if @sqsize!=o.sqsize or @dim!=o.dim or @chars_name!=o.chars_name
+    each_with_index do |r, ri|
+      r.each_with_index do |cell, ci|
+        return false unless cell==o[ri][ci]
+      end
+    end
+    true
   end
 
   def dup
@@ -256,10 +272,10 @@ class Generator
 
   private
 
-  # TODO: find all solutions if more then one
   def solutions
     g = @grid.dup
     g.apply_mask @mask
+    return [] if g.empty_cells.empty?
     s = Solver.new g
     s.find_solutions
   end
@@ -336,6 +352,8 @@ class Solver < Generator
   def find_solutions keep=false
     st = Time.now
     empty_cells = @grid.empty_cells
+    return [@grid.dup] if empty_cells.empty?
+
     res = solve_brute_force @time_limit
     while res
       if @time_limit>0 and (Time.now-st) > @time_limit
@@ -361,7 +379,7 @@ class Solver < Generator
       Rule::RULES.each do |klass|
         rule = klass.new(@grid)
         res = rule.solve
-        puts klass.name if res
+        puts klass.name if res and $DEBUG_RULES
         @difficulty += rule.difficulty if res
 #        @grid.print
 #        puts "---"
