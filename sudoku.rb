@@ -93,6 +93,7 @@ class Grid < Array
   def initialize(dim, chars=:numeric)
     @sqsize = Math.sqrt(dim).to_i
     raise "Wrong dimension #{dim}" if @sqsize**2 != dim
+    raise "Unknown symbols #{chars}" unless [:numeric, :alphabet].include?(chars)
     @dim = dim
 
     @checks = 0
