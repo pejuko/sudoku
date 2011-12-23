@@ -1,6 +1,8 @@
 #require 'unprof'
 require 'pp'
 
+$DEBUG_RULES = true if ENV["SUDOKU_DEBUG_RULES"]
+
 module Sudoku
 
 class Cell
@@ -371,18 +373,21 @@ class Solver < Generator
 #    @grid.print
 #    puts ""
     #rules = [OnlyChoiseRule, SinglePossibilityRule, SubGroupExclusionRule]
-    last = 81
+    last = @grid.dim*@grid.dim
     empty_cells=@grid.empty_cells
     while true
       break if last == empty_cells.size
       last = empty_cells.size
       Rule::RULES.each do |klass|
         rule = klass.new(@grid)
-        res = rule.solve
-        puts klass.name if res and $DEBUG_RULES
-        @difficulty += rule.difficulty if res
-#        @grid.print
-#        puts "---"
+#        res = true
+#        while res
+          res = rule.solve
+          puts klass.name if res and $DEBUG_RULES
+          @difficulty += rule.difficulty if res
+#        end
+        #@grid.print if res
+        #puts "-"*(@grid.dim*2+@grid.sqsize-1)
         empty_cells = @grid.empty_cells
         return true if empty_cells.size==0
       end
@@ -456,8 +461,7 @@ class OnlyChoiseRule < Rule
   private
 
   def solve_group(cells)
-    empty_cells = []
-    cells.each{|c| empty_cells << c if c.empty?}
+    empty_cells = cells.select{|c| c.empty?}
     return false if empty_cells.empty?
     if empty_cells.size == 1
       empty_cells[0].possible!
@@ -565,15 +569,60 @@ end
 
 ##
 # other squares already contains particular number so it must
-# be in this one in given row or column
+# be in this one in given row or column (others in this square
+# can be eliminated)
+# -- this implementation does not eliminate but fill in if there
+#    is only possibility for row or column for given number
+#    (this differ from Only Choice as it depends on a symbol instead
+#     of on number of empty cells)
 class OnlySquareRule < Rule
 
   def initialize(grid, d=3)
     super
   end
 
+  def solve_group group
+    res = false
+    empty_cells = group.select{|cell| cell.empty?}
+    return false if empty_cells.empty?
+    empty_cells.each{|cell| cell.possible!}
+    @grid.chars.each do |ch|
+      next unless group.select{|c| c.value==ch}.empty?
+      if (possible_cells=empty_cells.select{|cell| cell.set.include?(ch)}).size==1
+        res = true
+        possible_cells[0].value = ch
+      end
+    end
+    res
+  end
+
   def solve
-    false
+    res = false
+    @grid.each_with_index do |row, ri|
+      res ||= solve_group row
+=begin
+      squares = []
+      @grid.sqsize.times{|si| squares << r[si,@grid.sqsize]}
+      @grid.chars.each do |ch|
+        next unless r.select{|c| c.value==ch}.empty?
+        possible_squares = []
+        squares.each_with_index do |rsq, rsi|
+          rsq.each do |cell|
+            possible_squares << [rsi, cell] if cell.set.include?(ch)
+          end
+        end
+        if possible_squares.size==1
+          possible_squares[0][1].value = ch
+          res = true
+        end
+      end
+=end
+    end
+    @grid.sqsize.times do |c|
+      col = @grid.get_column c
+      res ||= solve_group col
+    end
+    res
   end
 
 end
