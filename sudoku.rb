@@ -256,11 +256,12 @@ class Generator
 
   attr_reader :grid, :mask, :level
 
-  def initialize(level=0, dim=9, chars=:numeric)
+  def initialize(level=0, dim=9, chars=:numeric, limit=1)
     @level = level
     @dim = dim
     @grid = Grid.new @dim, chars
     @mask = Array.new(@dim){Array.new(@dim){true}}
+    @time_limit = limit
     generate
     create_mask(level)
   end
@@ -279,12 +280,13 @@ class Generator
     g = @grid.dup
     g.apply_mask @mask
     return [] if g.empty_cells.empty?
-    s = Solver.new g
+    s = Solver.new g, @time_limit
     s.find_solutions
   end
 
   def create_mask(level=0)
     loops = 0
+    st = Time.now
     begin
       @mask = Array.new(@dim){Array.new(@dim){true}}
       @dim.times do |y|
@@ -294,7 +296,7 @@ class Generator
         end
       end
       loops += 1
-    end while (solutions.size != 1) or (loops > 100)
+    end while (Time.now-st < @time_limit) and (solutions.size != 1) and (loops<100)
     throw "too difficult" if loops > 100
   end
 
@@ -342,7 +344,7 @@ class Solver < Generator
 
   attr_reader :grid, :dim, :difficulty
 
-  def initialize(grid, time_limit=60)
+  def initialize(grid, time_limit=1)
     @grid = grid
     @dim = grid.dim
     @difficulty = 0
@@ -352,20 +354,20 @@ class Solver < Generator
     @solutions = []
   end
 
-  def find_solutions keep=false
+  def find_solutions keep=false, tl=@time_limit
     st = Time.now
     empty_cells = @grid.empty_cells
     return [@grid.dup] if empty_cells.empty?
 
-    res = solve_brute_force @time_limit
+    res = solve_brute_force tl
     while res
-      if @time_limit>0 and (Time.now-st) > @time_limit
+      if tl>0 and (Time.now-st) > tl
         @solutions = [] unless keep
         break
       end
       @solutions << @grid.dup
       empty_cells.last.clear!
-      res = solve(empty_cells, @time_limit)
+      res = solve(empty_cells, tl)
     end
     @solutions
   end

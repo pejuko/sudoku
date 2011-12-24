@@ -45,7 +45,7 @@ describe Sudoku::Solver do
   describe "#find_solutions" do
     it "test/multiple_solutions.sud" do
       sud = read_solver "multiple_solutions"
-      solutions = sud.find_solutions
+      solutions = sud.find_solutions false, 10
       solutions.should have(5).items
     end
 
@@ -68,7 +68,7 @@ end
 
 
 describe Sudoku::Generator do
-  (1..5).each do |level|
+  (1..8).each do |level|
     it "level #{level}: should generate new grid with only one possible solution" do
       sud = Sudoku::Generator.new level
       solver = Sudoku::Solver.new sud.grid, 5
@@ -77,7 +77,7 @@ describe Sudoku::Generator do
     end
   end
 
-  (1..5).each do |level|
+  (1..8).each do |level|
     it "level #{level}: should have some empty cells" do
       sud = Sudoku::Generator.new level
       sud.grid.apply_mask sud.mask
