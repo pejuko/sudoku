@@ -10,10 +10,10 @@ require 'prawn'
 class MainController < Controller
 
   def index
-    @level = 4
+    @level = session[:level] || 4
     @dim = 9
     @chars = :numeric
-    @level = request["level"].to_i if request["level"].to_i > 0
+    session[:level] = @level = request["level"].to_i if request["level"].to_i > 0
     @chars = request["chars"]=="alphabet" ? :alphabet : :numeric
 
     @title = "Sudoku"
