@@ -44,6 +44,17 @@ class Cell
     @set = possible.sort_by{rand}
   end
 
+  def eliminate_group! group
+    group.each{|cell| cell.set.delete_if{|s| s==@value}}
+  end
+
+  def eliminate!
+    return if @value == @grid.zero
+    eliminate_group! @grid[@y]
+    eliminate_group! @grid.get_column(@x)
+    eliminate_group! square
+  end
+
   def try(value)
     @grid.try(@x, @y, value)
   end
@@ -378,19 +389,19 @@ class Solver < Generator
     #rules = [OnlyChoiseRule, SinglePossibilityRule, SubGroupExclusionRule]
     last = @grid.dim*@grid.dim
     empty_cells=@grid.empty_cells
+    empty_cells.each{|cell| cell.possible!}
     while true
       break if last == empty_cells.size
       last = empty_cells.size
       Rule::RULES.each do |klass|
         rule = klass.new(@grid)
-#        res = true
-#        while res
-          res = rule.solve
-          puts klass.name if res and $DEBUG_RULES
-          @difficulty += rule.difficulty if res
-#        end
-        #@grid.print if res
-        #puts "-"*(@grid.dim*2+@grid.sqsize-1)
+        res = rule.solve
+        if res
+          puts klass.name if $DEBUG_RULES
+          @difficulty += rule.difficulty
+          #@grid.print if res
+          #puts "-"*(@grid.dim*2+@grid.sqsize-1)
+        end
         empty_cells = @grid.empty_cells
         return true if empty_cells.size==0
       end
@@ -467,8 +478,8 @@ class OnlyChoiseRule < Rule
     empty_cells = cells.select{|c| c.empty?}
     return false if empty_cells.empty?
     if empty_cells.size == 1
-      empty_cells[0].possible!
       empty_cells[0].next!
+      empty_cells[0].eliminate!
       return true
     end
     false
@@ -559,6 +570,7 @@ class TwoOutOfThreeRule < Rule
         end
         if exists
           cell.value = n
+          cell.eliminate!
           res = true
           break
         end
@@ -588,12 +600,12 @@ class OnlySquareRule < Rule
     res = false
     empty_cells = group.select{|cell| cell.empty?}
     return false if empty_cells.empty?
-    empty_cells.each{|cell| cell.possible!}
     @grid.chars.each do |ch|
       next unless group.select{|c| c.value==ch}.empty?
       if (possible_cells=empty_cells.select{|cell| cell.set.include?(ch)}).size==1
         res = true
         possible_cells[0].value = ch
+        possible_cells[0].eliminate!
       end
     end
     res
@@ -644,13 +656,13 @@ class SinglePossibilityRule < Rule
     res = false
     empty_cells = @grid.empty_cells
     return false if empty_cells.empty?
-    empty_cells.each{|c| c.possible!}
     empty_cells.sort_by!{|c| c.set.size}
     return false if empty_cells.first.set.size>1
     while empty_cells.size>0 and empty_cells[0].set.size==1
       res = true
       c = empty_cells.shift
       c.next!
+      c.eliminate!
     end
     res
   end
