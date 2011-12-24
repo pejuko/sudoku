@@ -128,12 +128,12 @@ describe Sudoku::Grid do
 
     [2, 3, 5, 8].each do |dim|
       it "should fail with dimension #{dim}" do
-        lambda{Sudoku::Grid.new dim}.should raise_error
+        expect { Sudoku::Grid.new dim }.to raise_error
       end
     end
 
     it "should fail with wrong characters" do
-      lambda{Sudoku::Grid.new 9, :abcdefgh}.should raise_error
+      expect { Sudoku::Grid.new 9, :abcdefgh }.to raise_error
     end
 
     it "should be initialized to 0 for :numeric grid" do
