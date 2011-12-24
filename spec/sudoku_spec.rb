@@ -46,21 +46,21 @@ describe Sudoku::Solver do
     it "test/multiple_solutions.sud" do
       sud = read_solver "multiple_solutions"
       solutions = sud.find_solutions
-      solutions.size.should == 5
+      solutions.should have(5).items
     end
 
     ["easy", "medium", "difficult"].each do |name|
       it "test/#{name}.sud" do
         sud = read_solver name
         solutions = sud.find_solutions
-        solutions.size.should == 1
+        solutions.should have(1).item
       end
     end
 
     it "test/impossible.sud" do
       sud = Sudoku::Solver.new Sudoku::Grid.read_file("test/impossible.sud"), 5
       solutions = sud.find_solutions true
-      solutions.size.should == 0
+      solutions.should be_empty
     end
   end
 
@@ -73,7 +73,7 @@ describe Sudoku::Generator do
       sud = Sudoku::Generator.new level
       solver = Sudoku::Solver.new sud.grid, 5
       solutions = solver.find_solutions true
-      solutions.size.should == 1
+      solutions.should have(1).item
     end
   end
 
@@ -81,7 +81,7 @@ describe Sudoku::Generator do
     it "level #{level}: should have some empty cells" do
       sud = Sudoku::Generator.new level
       sud.grid.apply_mask sud.mask
-      sud.grid.empty_cells.size.should > 0
+      sud.grid.empty_cells.should have_at_least(1).item
     end
   end
 end
@@ -107,12 +107,12 @@ describe Sudoku::Grid do
 
     it "should be solved" do
       grid = Sudoku::Grid.read_file "test/easy_result.sud"
-      grid.empty_cells.size.should == 0
+      grid.empty_cells.should be_empty
     end
 
     it "should be unsolved" do
       grid = Sudoku::Grid.read_file "test/easy.sud"
-      grid.empty_cells.size.should == 47
+      grid.empty_cells.should have(47).items
     end
   end
 
@@ -177,20 +177,20 @@ describe Sudoku::Grid do
     it "should have all cells empty" do
       mask = Array.new(9){Array.new(9){false}}
       @grid.apply_mask mask
-      @grid.empty_cells.size.should == 81
+      @grid.empty_cells.should have(81).items
     end
 
     it "should have all cells set" do
       mask = Array.new(9){Array.new(9){true}}
       @grid.apply_mask mask
-      @grid.empty_cells.size.should == 0
+      @grid.empty_cells.should be_empty
     end
   end
 
   describe "#empty_cells" do
     it "new grid should have all cells empty" do
       grid = Sudoku::Grid.new 9
-      grid.empty_cells.size.should == 81
+      grid.empty_cells.should have(81).items
     end
   end
 
@@ -212,11 +212,11 @@ describe Sudoku::Grid do
   describe "#possible)" do
     it "new grid should have all numbers possible in all cells" do
       grid = Sudoku::Grid.new 9
-      grid.each {|r| r.each {|c| c.possible.size.should == 9}}
+      grid.each { |r| r.each {|c| c.possible.should have(9).items }}
     end
 
     it "full grid should have zero possibilities in all cells" do
-      @grid.each {|r| r.each {|c| c.possible.size.should == 0}}
+      @grid.each {|r| r.each {|c| c.possible.should be_empty}}
     end
   end
 
