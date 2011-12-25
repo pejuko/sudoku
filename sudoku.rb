@@ -8,17 +8,19 @@ module Sudoku
 class Cell
   include Comparable
 
-  attr_accessor :x, :y, :value, :set
+  attr_accessor :x, :y, :value, :set, :sx, :sy
 
   def initialize(g, x, y, v=nil)
     @grid = g
     @x, @y = x, y
     @value = v || @grid.zero
     @set = []
+    @sx, @sy = [@x/@grid.sqsize, @y/@grid.sqsize]
   end
 
   alias :row :y
   alias :column :x
+
 
   def == o
     @x==o.x and @y==o.y and @value==o.value
@@ -399,7 +401,7 @@ class Solver < Generator
         if res
           puts klass.name if $DEBUG_RULES
           @difficulty += rule.difficulty
-          #@grid.print if res
+          #@grid.print
           #puts "-"*(@grid.dim*2+@grid.sqsize-1)
         end
         empty_cells = @grid.empty_cells
@@ -479,6 +481,7 @@ class OnlyChoiseRule < Rule
     return false if empty_cells.empty?
     if empty_cells.size == 1
       empty_cells[0].next!
+      empty_cells[0].set = []
       empty_cells[0].eliminate!
       return true
     end
@@ -681,7 +684,42 @@ class SubGroupExclusionRule < Rule
   end
 
   def solve
-    false
+    res = false
+    @grid.sqsize.times do |sr|
+      @grid.sqsize.times do |sc|
+        square = @grid.get_square(sc,sr)
+        empty_cells = square.select{|cell| cell.empty?}
+        @grid.chars.each do |ch|
+          chcells = empty_cells.select{|cell| cell.set.include?(ch)}
+          next if chcells.empty?
+          rch = chcells.select{|cell| cell.row==chcells.first.row}
+          cch = chcells.select{|cell| cell.column==chcells.first.column}
+          if rch.size == chcells.size
+            res ||= eliminate_group ch, @grid[rch.first.y], sc, sr
+          end
+          if cch == chcells.size
+            res ||= eliminate_group ch, @grid.get_column(cch.first.x), sc, sr
+          end
+        end
+      end
+    end
+    res
+  end
+
+  private
+
+  # eliminates possibilities in group except cells in square sx, sy
+  def eliminate_group ch, group, sx, sy
+    res = false
+    group.each do |cell|
+      next if cell.sx==sx and cell.sy==sy
+      if cell.set.include?(ch)
+        #pp [ch, sx, sy, cell]
+        cell.set.delete_if{|a| a==ch}
+        res = true
+      end
+    end
+    res
   end
 
 end
