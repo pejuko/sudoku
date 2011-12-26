@@ -755,34 +755,30 @@ end
 
 
 ##
-# if there are two cells with two same numbers possible and not anything else
-# then in those cells must be those two numbers and they can be excluded from
-# other cells possibilities
+# if there are two cells with two same numbers possible in same group and not
+# anything else then in those cells must be those two numbers and they can be
+# excluded from other cells possibilities in the same group
 #
-class NakedTwinExclusionRule < Rule
+class NakedTwinExclusionRule < OnlyChoiseRule
 
   def initialize(grid, d=12)
     super
   end
 
-  def solve
+  def solve_group cells
     res = false
-    empty_cells = @grid.empty_cells.select{|cell| cell.set.size==2}
-    while not empty_cells.empty?
-      cell = empty_cells.shift
+    empty_cells = cells.select{|cell| cell.empty? and cell.set.size==2}
+    empty_cells.each do |cell|
       twins = [cell]
       empty_cells.each do |c|
-        twins << c if c.set.include?(cell.set[0]) and c.set.include?(cell.set[1]) and c.sx==cell.sx and c.sy==cell.sy
+        twins << c if c.set.include?(cell.set[0]) and c.set.include?(cell.set[1])
       end
-      square = @grid.get_square(cell.sx, cell.sy)
-      v1 = square.select{|c| c.set.include?(cell.set[0])}
-      v2 = square.select{|c| c.set.include?(cell.set[1])}
-      if twins.size==2 and v1.size==2 and v2.size==2
-        square.each do |sqc|
-          next if twins.include?(sqc)
-          sqc.set.each do |a|
+      if twins.size==2
+        empty_cells.each do |ec|
+          next if twins.include?(ec)
+          ec.set.each do |a|
             if cell.set.include?(a)
-              sqc.set.delete_if{|a| cell.set.include?(a)}
+              ec.set.delete_if{|a| cell.set.include?(a)}
               res = true
             end
           end
