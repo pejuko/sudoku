@@ -87,6 +87,15 @@ class Grid < Array
       gr << line.split(/\s+/).map{|n| n}
     end
 
+    # handle one line format
+    if gr.size==1 and gr[0].size==1
+      line = gr[0][0].split(//)
+      dim = Math.sqrt(line.size).to_i
+      throw "Wrong dimension" if dim*dim != line.size
+      gr = []
+      line.each_slice(dim){|sl| gr << sl}
+    end
+
     chars = :numeric
     chars = :alphabet if gr.flatten.map{|n| n.to_i}.uniq.size == 1
 
@@ -399,10 +408,12 @@ class Solver < Generator
         rule = klass.new(@grid)
         res = rule.solve
         if res
-          puts klass.name if $DEBUG_RULES
           @difficulty += rule.difficulty
-          @grid.print
-          puts "-"*(@grid.dim*2+@grid.sqsize-1)
+          if $DEBUG_RULES
+            puts klass.name
+            @grid.print
+            puts "-"*(@grid.dim*2+@grid.sqsize-1)
+          end
         end
         empty_cells = @grid.empty_cells
         return true if empty_cells.size==0
