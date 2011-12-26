@@ -401,8 +401,8 @@ class Solver < Generator
         if res
           puts klass.name if $DEBUG_RULES
           @difficulty += rule.difficulty
-          #@grid.print
-          #puts "-"*(@grid.dim*2+@grid.sqsize-1)
+          @grid.print
+          puts "-"*(@grid.dim*2+@grid.sqsize-1)
         end
         empty_cells = @grid.empty_cells
         return true if empty_cells.size==0
@@ -728,7 +728,7 @@ end
 ##
 # (triplet exclusion rule)
 # if there are two same pairs of numbers in two different squares and none 
-# of them is possible elsewhere it is possible to exclude others possibilities
+# of them is possible elsewhere it is possible to exclude other possibilities
 #
 class HiddenTwinExclusionRule < Rule
 
@@ -755,7 +755,30 @@ class NakedTwinExclusionRule < Rule
   end
 
   def solve
-    false
+    res = false
+    empty_cells = @grid.empty_cells.select{|cell| cell.set.size==2}
+    while not empty_cells.empty?
+      cell = empty_cells.shift
+      twins = [cell]
+      empty_cells.each do |c|
+        twins << c if c.set.include?(cell.set[0]) and c.set.include?(cell.set[1]) and c.sx==cell.sx and c.sy==cell.sy
+      end
+      square = @grid.get_square(cell.sx, cell.sy)
+      v1 = square.select{|c| c.set.include?(cell.set[0])}
+      v2 = square.select{|c| c.set.include?(cell.set[1])}
+      if twins.size==2 and v1.size==2 and v2.size==2
+        square.each do |sqc|
+          next if twins.include?(sqc)
+          sqc.set.each do |a|
+            if cell.set.include?(a)
+              sqc.set.delete_if{|a| cell.set.include?(a)}
+              res = true
+            end
+          end
+        end
+      end
+    end
+    res
   end
 
 end
