@@ -19,7 +19,7 @@ end
 describe Sudoku::Solver do
 
   describe "#solve_rules" do
-    ["easy", "medium", "difficult"].each do |name|
+    ["easy", "medium", "difficult", "hidden_twins"].each do |name|
       it "test/#{name}.sud" do
         sud, sol = get_sud(name)
         solvable = sud.solve_rules
@@ -31,7 +31,7 @@ describe Sudoku::Solver do
 
 
   describe "#solve_brute_force" do
-    ["easy", "medium", "difficult"].each do |name|
+    ["easy", "medium", "difficult", "hidden_twins"].each do |name|
       it "test/#{name}.sud" do
         sud, sol = get_sud(name)
         solvable = sud.solve_brute_force 5
@@ -49,7 +49,7 @@ describe Sudoku::Solver do
       solutions.should have(5).items
     end
 
-    ["easy", "medium", "difficult"].each do |name|
+    ["easy", "medium", "difficult", "hidden_twins"].each do |name|
       it "test/#{name}.sud" do
         sud = read_solver name
         solutions = sud.find_solutions
