@@ -401,13 +401,16 @@ class Solver < Generator
     last = @grid.dim*@grid.dim
     empty_cells=@grid.empty_cells
     empty_cells.each{|cell| cell.possible!}
+    found = false
     while true
-      break if last == empty_cells.size
+      break if last == empty_cells.size and not found
+      found = false
       last = empty_cells.size
       Rule::RULES.each do |klass|
       #[HiddenTwinExclusionRule].each do |klass|
         rule = klass.new(@grid)
         res = rule.solve
+        found ||= res
         if res
           @difficulty += rule.difficulty
           if $DEBUG_RULES
@@ -469,6 +472,7 @@ end
 
 
 ##
+# (full house)
 # only one cell left empty in group (row, column, square)
 #
 class OnlyChoiseRule < Rule
@@ -659,6 +663,7 @@ end
 
 
 ##
+# (naked single)
 # single possibility for one cell
 #
 class SinglePossibilityRule < Rule
@@ -681,6 +686,33 @@ class SinglePossibilityRule < Rule
     end
     res
   end
+end
+
+
+##
+# hidden single
+# it is only choice in one group in other group there can be possibilities
+class HiddenSingle < OnlyChoiseRule
+
+  def initialize(grid, d=5)
+    super
+  end
+
+  def solve_group cells
+    res = false
+    empty_cells = cells.select{|cell| cell.empty?}
+    @grid.chars.each do |ch|
+      chcells = empty_cells.select{|cell| cell.set.include?(ch)}
+      if chcells.size==1
+        res = true
+        chcells[0].value = ch
+        chcells[0].set.delete_if{|s| s==ch}
+        chcells[0].eliminate!
+      end
+    end
+    res
+  end
+
 end
 
 
