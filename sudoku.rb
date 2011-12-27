@@ -405,6 +405,7 @@ class Solver < Generator
       break if last == empty_cells.size
       last = empty_cells.size
       Rule::RULES.each do |klass|
+      #[HiddenTwinExclusionRule].each do |klass|
         rule = klass.new(@grid)
         res = rule.solve
         if res
@@ -741,14 +742,37 @@ end
 # if there are two same pairs of numbers in two different squares and none 
 # of them is possible elsewhere it is possible to exclude other possibilities
 #
-class HiddenTwinExclusionRule < Rule
+class HiddenTwinExclusionRule < OnlyChoiseRule
 
   def initialize(grid, d=11)
     super
   end
 
-  def solve
-    false
+  def solve_group cells
+    res = false
+    empty_cells = cells.select{|cell| cell.empty? and cell.set.size >= 2}
+    empty_cells.each do |cell|
+      cell.set.each do |a|
+        cell.set.each do |b|
+          next if a==b
+          twins = empty_cells.select{|c| c.set.include?(a) and c.set.include?(b)}
+          ac = cells.select{|c| c.empty? and c.set.include?(a)}
+          bc = cells.select{|c| c.empty? and c.set.include?(b)}
+          if twins.size==2 and ac.size==2 and bc.size==2
+            twins.each do |tc|
+              if (tc.set.size > 2)
+                #pp twins
+                #pp tc
+                tc.set.delete_if{|x| x!=a and x!=b}
+                #pp tc
+                res = true
+              end
+            end
+          end
+        end
+      end
+    end
+    res
   end
 
 end
@@ -769,18 +793,17 @@ class NakedTwinExclusionRule < OnlyChoiseRule
     res = false
     empty_cells = cells.select{|cell| cell.empty? and cell.set.size==2}
     empty_cells.each do |cell|
-      twins = [cell]
-      empty_cells.each do |c|
-        twins << c if c.set.include?(cell.set[0]) and c.set.include?(cell.set[1])
-      end
+      twins = empty_cells.select { |c| c.set.include?(cell.set[0]) and c.set.include?(cell.set[1]) }
       if twins.size==2
-        empty_cells.each do |ec|
+        cells.each do |ec|
+          next if not ec.empty?
           next if twins.include?(ec)
-          ec.set.each do |a|
-            if cell.set.include?(a)
-              ec.set.delete_if{|a| cell.set.include?(a)}
-              res = true
-            end
+          if ec.set.include?(cell.set[0]) or ec.set.include?(cell.set[1])
+            #pp twins
+            #pp ec
+            ec.set.delete_if{|a| cell.set.include?(a)}
+            #pp ec
+            res = true
           end
         end
       end
