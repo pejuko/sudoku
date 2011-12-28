@@ -613,10 +613,6 @@ end
 # other squares already contains particular number so it must
 # be in this one in given row or column (others in this square
 # can be eliminated)
-# -- this implementation does not eliminate but fill in if there
-#    is only possibility for row or column for given number
-#    (this differ from Only Choice as it depends on a symbol instead
-#     of on number of empty cells)
 class OnlySquareRule < Rule
 
   def initialize(grid, d=3)
@@ -629,10 +625,18 @@ class OnlySquareRule < Rule
     return false if empty_cells.empty?
     @grid.chars.each do |ch|
       next unless group.select{|c| c.value==ch}.empty?
-      if (possible_cells=empty_cells.select{|cell| cell.set.include?(ch)}).size==1
-        res = true
-        possible_cells[0].value = ch
-        possible_cells[0].eliminate!
+      possible_cells=empty_cells.select{|cell| cell.set.include?(ch)}
+      next if possible_cells.empty?
+      if possible_cells.select{|cell| cell.sx==possible_cells[0].sx and cell.sy==possible_cells[0].sy}.size==possible_cells.size
+        #pp possible_cells
+        square = possible_cells[0].square
+        square.each do |cell|
+          next if possible_cells.include?(cell)
+          next if not cell.set.include?(ch)
+          #pp cell
+          res = true
+          cell.set.delete_if{|a| a==ch}
+        end
       end
     end
     res
