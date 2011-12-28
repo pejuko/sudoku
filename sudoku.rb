@@ -234,6 +234,14 @@ class Grid < Array
     col
   end
 
+  def get_columns
+    columns = []
+    @dim.times do |x|
+      columns << get_column(x)
+    end
+    columns
+  end
+
   def get_square(x,y)
     sq = []
     row = y*@sqsize
@@ -407,7 +415,7 @@ class Solver < Generator
       found = false
       last = empty_cells.size
       Rule::RULES.each do |klass|
-      #[HiddenTwinExclusionRule].each do |klass|
+      #[XWingRule].each do |klass|
         rule = klass.new(@grid)
         res = rule.solve
         found ||= res
@@ -858,7 +866,71 @@ class XWingRule < Rule
   end
 
   def solve
-    false
+    res = false
+    res ||= solve_rows | solve_columns
+    res
+  end
+
+  def solve_rows
+    res = false
+    candidates = []
+    @grid.each_with_index do |row,ri|
+      @grid.chars.each do |ch|
+        cells = row.select{|c| c.empty? and c.set.include?(ch)}
+        candidates << [ch, cells.sort{|a,b| a.x<=>b.x}] if cells.size==2
+      end
+    end
+    candidates.each do |cand|
+      corners = candidates.select{|c| c[0]==cand[0] and c[1][0].x==cand[1][0].x and c[1][1].x==cand[1][1].x}
+      if corners.size==2
+        cells = corners.map{|x| x[1]}.flatten
+        #pp cells
+        cols = cells.map{|c| c.x}.uniq
+        cols.each do |col|
+          @grid.get_column(col).each do |c|
+            next if cells.include?(c)
+            if c.set.include?(cand[0])
+              #pp c
+              c.set.delete_if{|x| x==cand[0]}
+              res = true
+            end
+          end
+        end
+      end
+    end
+    res
+  end
+
+
+  def solve_columns
+    res = false
+    candidates = []
+    @grid.get_columns.each_with_index do |column,ci|
+      @grid.chars.each do |ch|
+        cells = column.select{|c| c.empty? and c.set.include?(ch)}
+        candidates << [ch, cells.sort{|a,b| a.y<=>b.y}] if cells.size==2
+      end
+    end
+    #pp candidates
+    candidates.each do |cand|
+      corners = candidates.select{|c| c[0]==cand[0] and c[1][0].y==cand[1][0].y and c[1][1].y==cand[1][1].y}
+      if corners.size==2
+        cells = corners.map{|x| x[1]}.flatten
+        #pp cells
+        rows = cells.map{|c| c.y}.uniq
+        rows.each do |row|
+          @grid[row].each do |c|
+            next if cells.include?(c)
+            if c.set.include?(cand[0])
+              #pp c
+              c.set.delete_if{|x| x==cand[0]}
+              res = true
+            end
+          end
+        end
+      end
+    end
+    res
   end
 
 end
