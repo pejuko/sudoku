@@ -53,4 +53,10 @@ Implemented rules:
 
 * Only choice rule
 * Single possibility rule
-
+* Two out of three
+* Only square rule
+* Hidden single
+* Naked Twins exclusion rule
+* Hidden Twins exclusion rule
+* Subgroup exclusion rule
+* X-Wing exclusion rule

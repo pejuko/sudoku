@@ -704,7 +704,7 @@ end
 ##
 # hidden single
 # it is only choice in one group in other group there can be possibilities
-class HiddenSingle < OnlyChoiseRule
+class HiddenSingleRule < OnlyChoiseRule
 
   def initialize(grid, d=5)
     super
