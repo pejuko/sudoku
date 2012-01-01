@@ -292,7 +292,7 @@ end
 
 class Generator
 
-  DIFFICULTY = [20, 50, 80, 100, 120, 140, 160, 180, 200]
+  DIFFICULTY = [20, 35, 50, 70, 100, 125, 150, 200, 250, 350]
 
   attr_reader :grid, :mask, :level
 
@@ -347,6 +347,7 @@ class Generator
     unused = []
     used = []
     y, x = -1, -1
+    strongest = nil
     begin
       loops += 1
       y, x = cells.shift
@@ -358,6 +359,7 @@ class Generator
         s = sold
         unused << [y,x]
       else
+        strongest = s if not strongest or strongest.difficulty < s.difficulty
         used << [y,x]
       end
       if cells.empty?
@@ -370,8 +372,8 @@ class Generator
       et = Time.now
     end while (et-st < @time_limit) and (s and s.difficulty < DIFFICULTY[level])# and (loops<100)
     p [et-st, loops, DIFFICULTY[level]]
-    p s.difficulty
-    @mask = s.grid.mask
+    p strongest.difficulty
+    @mask = strongest.grid.mask
 #    throw "too difficult" if loops >= 100 or et-st>=@time_limit
 #    throw "too difficult" if et-st>=@time_limit
   end
