@@ -292,7 +292,7 @@ end
 
 class Generator
 
-  DIFFICULTY = [20, 35, 50, 70, 100, 125, 150, 200, 250, 350]
+  DIFFICULTY = [30, 50, 80, 110, 140, 170, 200, 250, 300, 400]
 
   attr_reader :grid, :mask, :level
 
@@ -348,6 +348,7 @@ class Generator
     used = []
     y, x = -1, -1
     strongest = nil
+    closest = nil
     begin
       loops += 1
       y, x = cells.shift
@@ -360,6 +361,7 @@ class Generator
         unused << [y,x]
       else
         strongest = s if not strongest or strongest.difficulty < s.difficulty
+        closest = s if not closest or (closest.difficulty-DIFFICULTY[level]).abs > (s.difficulty-DIFFICULTY[level]).abs
         used << [y,x]
       end
       if cells.empty?
@@ -372,8 +374,8 @@ class Generator
       et = Time.now
     end while (et-st < @time_limit) and (s and s.difficulty < DIFFICULTY[level])# and (loops<100)
     p [et-st, loops, DIFFICULTY[level]]
-    p strongest.difficulty
-    @mask = strongest.grid.mask
+    p closest.difficulty
+    @mask = closest.grid.mask
 #    throw "too difficult" if loops >= 100 or et-st>=@time_limit
 #    throw "too difficult" if et-st>=@time_limit
   end
@@ -664,7 +666,7 @@ end
 # can be eliminated)
 class OnlySquareRule < Rule
 
-  def initialize(grid, d=3)
+  def initialize(grid, d=5)
     super
   end
 
@@ -729,7 +731,7 @@ end
 #
 class SinglePossibilityRule < Rule
 
-  def initialize(grid, d=4)
+  def initialize(grid, d=10)
     super
   end
  
@@ -755,7 +757,7 @@ end
 # it is only choice in one group in other group there can be possibilities
 class HiddenSingleRule < OnlyChoiseRule
 
-  def initialize(grid, d=5)
+  def initialize(grid, d=15)
     super
   end
 
@@ -784,7 +786,7 @@ end
 #
 class SubGroupExclusionRule < Rule
 
-  def initialize(grid, d=10)
+  def initialize(grid, d=15)
     super
   end
 
@@ -837,7 +839,7 @@ end
 #
 class HiddenTwinExclusionRule < OnlyChoiseRule
 
-  def initialize(grid, d=11)
+  def initialize(grid, d=25)
     super
   end
 
@@ -878,7 +880,7 @@ end
 #
 class NakedTwinExclusionRule < OnlyChoiseRule
 
-  def initialize(grid, d=12)
+  def initialize(grid, d=20)
     super
   end
 
@@ -914,7 +916,7 @@ end
 #
 class XWingRule < Rule
 
-  def initialize(grid, d=100)
+  def initialize(grid, d=30)
     super
   end
 
@@ -1005,7 +1007,7 @@ end
 #
 class SwordFishRule < Rule
 
-  def initialize(grid, d=110)
+  def initialize(grid, d=40)
     super
   end
 
@@ -1126,7 +1128,7 @@ if __FILE__ == $0
       dim = ARGV.shift.to_i
       level = ARGV.shift.to_i if ARGV.size > 0
       chars = ARGV.shift.to_sym if ARGV.size > 0
-      time_limit = (ARGV.shift || 10).to_i
+      time_limit = (ARGV.shift || 10).to_f
       s = Sudoku::Generator.new level, dim, chars, time_limit
       s.print_sudoku
     end
