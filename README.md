@@ -60,3 +60,4 @@ Implemented rules:
 * Hidden Twins exclusion rule
 * Subgroup exclusion rule
 * X-Wing exclusion rule
+* Sword Fish rule
