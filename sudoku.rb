@@ -77,7 +77,7 @@ end
 
 class Grid < Array
 
-  attr_reader :dim, :sqsize, :zero, :chars, :chars_name, :checks
+  attr_reader :dim, :sqsize, :zero, :chars, :chars_name, :checks, :mask
 
   def self.read_file(fname)
     gr = []
@@ -137,6 +137,10 @@ class Grid < Array
         self[y][x] = Cell.new self, x, y, @zero
       end
     end
+  end
+
+  def num_cells
+    @dim*@dim
   end
 
   def == o
@@ -288,6 +292,8 @@ end
 
 class Generator
 
+  DIFFICULTY = [20, 50, 80, 100, 120, 140, 160, 180, 200]
+
   attr_reader :grid, :mask, :level
 
   def initialize(level=0, dim=9, chars=:numeric, limit=1)
@@ -310,6 +316,15 @@ class Generator
 
   private
 
+  def solvable?
+    g = @grid.dup
+    g.apply_mask @mask
+    return false if g.empty_cells.empty?
+    s = Solver.new g, @time_limit
+    return s if s.solve_rules
+    false
+  end
+
   def solutions
     g = @grid.dup
     g.apply_mask @mask
@@ -321,17 +336,30 @@ class Generator
   def create_mask(level=0)
     loops = 0
     st = Time.now
+    et = st
+    s = true
+    @mask = Array.new(@dim){Array.new(@dim){(rand(@grid.num_cells/2) % @grid.dim == 0) ? false : true}}
+    sold_mask = @mask.dup
     begin
-      @mask = Array.new(@dim){Array.new(@dim){true}}
-      @dim.times do |y|
-        gaps = rand(@grid.sqsize/2) + level;
-        (0..(@dim-1)).to_a.sort_by{rand}[0,gaps].each do |i|
-          @mask[y][i] = false
-        end
-      end
       loops += 1
-    end while (Time.now-st < @time_limit) and (solutions.size != 1) and (loops<100)
-    throw "too difficult" if loops > 100
+      n = rand @grid.num_cells
+      y = n / @grid.dim
+      x = n % @grid.dim
+      @mask[y][x] = false
+      sold = s
+      s = solvable?
+      unless s
+#        @mask[rand(@grid.dim)][rand(@grid.dim)] = true
+        @mask[y][x] = true
+        s = sold
+      end
+      et = Time.now
+    end while (et-st < @time_limit) and (s and s.difficulty < DIFFICULTY[level])# and (loops<100)
+    p [et-st, loops, DIFFICULTY[level]]
+    p s.difficulty
+    @mask = s.grid.mask
+#    throw "too difficult" if loops >= 100 or et-st>=@time_limit
+#    throw "too difficult" if et-st>=@time_limit
   end
 
   def solve(cells, time_limit=-1)
@@ -423,6 +451,7 @@ class Solver < Generator
         rule = klass.new(@grid)
         res = rule.solve
         found ||= res
+        empty_cells = @grid.empty_cells
         if res
           @difficulty += rule.difficulty
           if $DEBUG_RULES
@@ -430,10 +459,10 @@ class Solver < Generator
             @grid.print
             puts "-"*(@grid.dim*2+@grid.sqsize-1)
           end
+          break
         end
-        empty_cells = @grid.empty_cells
-        return true if empty_cells.size==0
       end
+      return true if empty_cells.size==0
     end
     false
   end
@@ -1081,7 +1110,8 @@ if __FILE__ == $0
       dim = ARGV.shift.to_i
       level = ARGV.shift.to_i if ARGV.size > 0
       chars = ARGV.shift.to_sym if ARGV.size > 0
-      s = Sudoku::Generator.new level, dim, chars
+      time_limit = (ARGV.shift || 10).to_i
+      s = Sudoku::Generator.new level, dim, chars, time_limit
       s.print_sudoku
     end
   else
