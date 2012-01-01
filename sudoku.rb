@@ -226,6 +226,10 @@ class Grid < Array
     check get_square(x,y)
   end
 
+  def get_row(y)
+    self[y]
+  end
+
   def get_column(x)
     col = []
     self.size.times do |y|
@@ -415,7 +419,7 @@ class Solver < Generator
       found = false
       last = empty_cells.size
       Rule::RULES.each do |klass|
-      #[XWingRule].each do |klass|
+      #[SwordFishRule].each do |klass|
         rule = klass.new(@grid)
         res = rule.solve
         found ||= res
@@ -881,7 +885,7 @@ class XWingRule < Rule
     @grid.each_with_index do |row,ri|
       @grid.chars.each do |ch|
         cells = row.select{|c| c.empty? and c.set.include?(ch)}
-        candidates << [ch, cells.sort{|a,b| a.x<=>b.x}] if cells.size==2
+        candidates << [ch, cells.sort{|a,b| a.sx<=>b.sx}] if cells.size==2
       end
     end
     candidates.each do |cand|
@@ -912,7 +916,7 @@ class XWingRule < Rule
     @grid.get_columns.each_with_index do |column,ci|
       @grid.chars.each do |ch|
         cells = column.select{|c| c.empty? and c.set.include?(ch)}
-        candidates << [ch, cells.sort{|a,b| a.y<=>b.y}] if cells.size==2
+        candidates << [ch, cells.sort{|a,b| a.sy<=>b.sy}] if cells.size==2
       end
     end
     #pp candidates
@@ -961,7 +965,82 @@ class SwordFishRule < Rule
   end
 
   def solve
-    false
+    res = false
+    res ||= solve_rows | solve_columns
+    res
+  end
+
+  def solve_rows
+    res = false
+    candidates = []
+    @grid.each_with_index do |row,ri|
+      @grid.chars.each do |ch|
+        cells = row.select{|c| c.empty? and c.set.include?(ch)}
+        candidates << [ch, cells.sort{|a,b| a.x<=>b.x}] if cells.size==2
+      end
+    end
+    #pp candidates
+    candidates.each do |cand|
+      corner1 = candidates.select{|c|
+        c[0]==cand[0] and cand[1][0].x==c[1][1].x and cand[1][1].x!=c[1][0].x
+      }
+      corner2 = candidates.select{|c|
+        c[0]==cand[0] and cand[1][0].x!=c[1][1].x and cand[1][1].x==c[1][1].x
+      }
+      corners = ([cand] | corner1 | corner2).map{|y| y[1]}.sort{|a,b| a[0].y<=>b[0].y}
+      cells = corners.flatten
+      next if corners.size != 3 or cells.size != 6
+      next if not ( (corners[1][0].x == corners[2][0].x and corners[1][1].x == corners[0][1].x) or
+                    (corners[1][0].x == corners[0][0].x and corners[1][1].x == corners[2][1].x) )
+      res |= eliminate( cand[0], corners, cells, :column)
+    end
+    res
+  end
+
+  def solve_columns
+    res = false
+    candidates = []
+    @grid.get_columns.each_with_index do |column,ci|
+      @grid.chars.each do |ch|
+        cells = column.select{|c| c.empty? and c.set.include?(ch)}
+        #cells.delete_if{|c| cells.select{|c2| c2.sy==c.sy}.size > 1}
+        candidates << [ch, cells.sort{|a,b| a.y<=>b.y}] if cells.size==2
+      end
+    end
+    #pp candidates
+    candidates.each do |cand|
+      corner1 = candidates.select{|c|
+        c[0]==cand[0] and cand[1][0].y==c[1][1].y and cand[1][1].y!=c[1][0].y
+      }
+      corner2 = candidates.select{|c|
+        c[0]==cand[0] and cand[1][0].y!=c[1][1].y and cand[1][1].y==c[1][1].y
+      }
+      corners = ([cand] | corner1 | corner2).map{|x| x[1]}.sort{|a,b| a[0].x<=>b[0].x}
+      cells = corners.flatten
+      next if corners.size != 3 or cells.size != 6
+      next if not ( (corners[1][0].y == corners[2][0].y and corners[1][1].y == corners[0][1].y) or
+                    (corners[1][0].y == corners[0][0].y and corners[1][1].y == corners[2][1].y) )
+      res |= eliminate( cand[0], corners, cells, :row )
+    end
+    res
+  end
+
+  def eliminate cand, corners, cells, dir
+    res=false
+    #pp corners
+    #pp cells
+    rows = cells.map{|c| c.send(dir)}.uniq
+    rows.each do |row|
+      @grid.send("get_#{dir}", row).each do |c|
+        next if cells.include?(c)
+        if c.set.include?(cand) and c.set.size>1
+          c.set.delete_if{|x| x==cand}
+          #pp [cand, dir, c]
+          res = true
+        end
+      end
+    end
+    res
   end
 
 end
