@@ -338,20 +338,34 @@ class Generator
     st = Time.now
     et = st
     s = true
-    @mask = Array.new(@dim){Array.new(@dim){(rand(@grid.num_cells/2) % @grid.dim == 0) ? false : true}}
+    #@mask = Array.new(@dim){Array.new(@dim){(rand(@grid.num_cells/2) % @grid.dim == 0) ? false : true}}
+    @mask = Array.new(@dim){Array.new(@dim){true}}
     sold_mask = @mask.dup
+    cells = []
+    @mask.each_with_index{|r,ri| r.each_with_index {|c,ci| cells << [ri, ci]}}
+    cells.sort_by!{rand}
+    unused = []
+    used = []
+    y, x = -1, -1
     begin
       loops += 1
-      n = rand @grid.num_cells
-      y = n / @grid.dim
-      x = n % @grid.dim
+      y, x = cells.shift
       @mask[y][x] = false
       sold = s
       s = solvable?
       unless s
-#        @mask[rand(@grid.dim)][rand(@grid.dim)] = true
         @mask[y][x] = true
         s = sold
+        unused << [y,x]
+      else
+        used << [y,x]
+      end
+      if cells.empty?
+        cells = unused.sort_by{rand}
+        u = used.shift
+        @mask[u[0]][u[1]] = true
+        cells << u
+        unused = []
       end
       et = Time.now
     end while (et-st < @time_limit) and (s and s.difficulty < DIFFICULTY[level])# and (loops<100)
