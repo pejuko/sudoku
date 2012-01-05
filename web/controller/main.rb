@@ -35,16 +35,34 @@ class MainController < Controller
     end
   end
 
+  def checkpdf
+    pdf = Ramaze::Cache.session.fetch(session[:pdfsid])
+    pdfpage = Ramaze::Cache.session.fetch(session[:pdfpage])
+    respond( pdf ? "ready" : pdfpage, 200, {'Content-Type' => 'text/plain'} )
+  end
+
+  def fetchpdf
+    pdf = Ramaze::Cache.session.fetch(session[:pdfsid])
+    if pdf
+      Ramaze::Cache.session.delete(session[:pdfsid])
+      respond pdf, 200, {'Content-Type' => 'application/pdf'}
+    end
+  end
+
   def pdf(format, chars, *level)
     pages = level.inject(0){|sum,c| sum += c.to_i}
+    pdfsid = session[:pdfsid] = "pdf#{session.sid}"
+    pdfpage = session[:pdfpage] = "pdfpage#{session.sid}"
     throw "To many pages" if pages > 30
+    Thread.new {
     pdf = Prawn::Document.new(:page_size => format.upcase, :top_margin => 75)
     level.each_with_index do |count, level|
       c = count.to_i
       next if c<=0
-      l = level + 3
+      l = level + 1
       c.times do |i|
-        pdf.text "Level #{l-2}", :align => :center, :size => 32
+        Ramaze::Cache.session.store(pdfpage, "#{pdf.page_count}/#{pages}")
+        pdf.text "Level #{l}", :align => :center, :size => 32
         w = pdf.bounds.top
         h = pdf.bounds.right
         pos = [
@@ -68,7 +86,9 @@ class MainController < Controller
         pdf.start_new_page if pdf.page_count < pages
       end
     end
-    respond pdf.render, 200, {'Content-Type' => 'application/pdf'}
+    Ramaze::Cache.session.store(pdfsid, pdf.render)
+    }
+    respond( "busy", 200, {'Content-Type' => 'text/plain'} )
   end
 
   def save(*args)
@@ -82,7 +102,7 @@ class MainController < Controller
   private
 
   def new_pdf_sudoku(l, chars)
-    s = Sudoku::Generator.new(l, 9, chars)
+    s = Sudoku::Generator.new(l, 9, chars, 6)
     g = s.grid.dup
     s.mask.each_with_index do |row, y|
       row.each_with_index do |col, x|

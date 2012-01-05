@@ -104,7 +104,7 @@ ul, ol {
     vertical-align: middle;
 }
 
-#message, #error, .button {
+#message, #error, .button, .counter {
   font-size: 32px;
   font-weight: bold;
   width: 200px;
@@ -134,6 +134,7 @@ ul, ol {
 }
 
 .button {
+  cursor: pointer;
   font-size: 26px;
   padding: 5px;
   margin: 5px;
@@ -194,6 +195,7 @@ ul, ol {
     padding: 3px;
     padding-left: 10px;
     border-bottom: 1px #999 solid;
+    cursor: pointer;
 }
 
 #menu li:hover {

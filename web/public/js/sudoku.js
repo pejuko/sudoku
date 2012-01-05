@@ -12,9 +12,11 @@ function setup()
 		}
 	}
 
-	// set hook for sending form
-	var form = document.forms[0];
-	if (form) form.onsubmit = function(e) {sendForm(form);};
+	// set hooks for sending forms
+	var grid = document.getElementById("grid");
+	if (grid) grid.onsubmit = function(e) {sendForm(grid);};
+	var book = document.getElementById("book");
+	if (book) book.onsubmit = function(e) {return getBook(book);};
 
 	// make menu clickable everywhere
 	menu = document.getElementById("menu");
@@ -79,6 +81,63 @@ function sendForm(form)
 	prepareForm(form);
 	form.submit();
 }
+
+function getPDF(xmlhttp)
+{
+	if (xmlhttp.readyState != 4) return;
+	if (xmlhttp.status != 200) return;
+
+	var content = document.getElementById("content");
+
+	if (xmlhttp.responseText == "ready") {
+		//window.location = "/fetchpdf";
+		window.open("/fetchpdf", '', 'height=' + 800 + ',width=' + 600 + ',channelmode=0,dependent=0,directories=0,fullscreen=0,location=0,menubar=0,resizable=1,scrollbars=1,status=1,toolbar=0');
+		content.innerHTML = content.backup;
+		document.body.style.cursor = "auto";
+	} else {
+		content.innerHTML = '<div class="counter">Page ' + xmlhttp.responseText + '</div>';
+		setTimeout(function() {
+			xmlhttp = getAjax();
+			xmlhttp.open("GET", "/checkpdf", true);
+			xmlhttp.onreadystatechange = function() {getPDF(xmlhttp);};
+			xmlhttp.send();
+		}, 1000);
+	}
+}
+
+function getBook(book)
+{
+	var format = getElementsByName(book, "select", "format")[0];
+	var chars = getElementsByName(book, "select", "chars")[0];
+	var pages = book.getElementsByTagName("input");
+	var path = "/pdf/" + format.value + "/" + chars.value;
+	var rexp = /(\d+)/;
+	for (var i=0; i<pages.length; i++) {
+		var v = pages[i].value;
+		if (v=="download") continue;
+		if (rexp.exec(v))
+			path = path + "/" + v;
+		else
+			path = path + "/0";
+	}
+
+	setTimeout(function() {
+		xmlhttp = getAjax();
+		xmlhttp.open("GET", path, true);
+		xmlhttp.onreadystatechange = function() {getPDF(xmlhttp);};
+		xmlhttp.send();
+	}, 1000);
+
+	var content = document.getElementById("content");
+	content.backup = content.innerHTML;
+	document.body.style.cursor = "wait";
+
+	//content.innerHTML = content.innerHTML + "<br/>Wait...";
+	content.innerHTML = "<br/>Wait...";
+
+	//book.submit();
+	return false;
+};
 
 function getAjax()
 {
@@ -197,6 +256,17 @@ function toggleSelected(element)
 	submitFormInBackground();
 }
 
+
+function getElementsByName(element, tag, name)
+{
+	var elements = element.getElementsByTagName(tag);
+	var result = [];
+	for (var i=0; i<elements.length; i++) {
+		if (elements[i].name != name) continue;
+		result.push(elements[i]);
+	}
+	return result;
+}
 
 function getElementsByClass(element, tag, name)
 {

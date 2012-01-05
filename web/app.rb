@@ -7,8 +7,14 @@ require 'rubygems'
 require "bundler/setup"
 require 'ramaze'
 
+Ramaze::Cache.options.session = Ramaze::Cache::MemCache.using(
+    :compression => true
+)
+
 # Make sure that Ramaze knows where you are
 Ramaze.options.roots = [__DIR__]
+
+Ramaze.setup_dependencies
 
 # Initialize controllers and models
 require __DIR__('model/init')
