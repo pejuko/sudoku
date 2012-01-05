@@ -7,9 +7,10 @@ require 'rubygems'
 require "bundler/setup"
 require 'ramaze'
 
-Ramaze::Cache.options.session = Ramaze::Cache::MemCache.using(
-    :compression => true
-)
+#Ramaze::Cache.options.session = Ramaze::Cache::MemCache.using(
+#    :compression => true,
+#    :servers => ['127.0.0.1:11211']#, 'localhost:11211', '::1:11211']
+#)
 
 # Make sure that Ramaze knows where you are
 Ramaze.options.roots = [__DIR__]
