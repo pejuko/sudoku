@@ -10,7 +10,7 @@ require 'prawn'
 class MainController < Controller
 
   def index
-    @level = session[:level] || 4
+    @level = session[:level] || 3
     @dim = 9
     @chars = :numeric
     session[:level] = @level = request["level"].to_i if request["level"].to_i > 0

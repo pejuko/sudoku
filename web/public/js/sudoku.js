@@ -91,9 +91,10 @@ function getPDF(xmlhttp)
 
 	if (xmlhttp.responseText == "ready") {
 		//window.location = "/fetchpdf";
-		window.open("/fetchpdf", '', 'height=' + 800 + ',width=' + 600 + ',channelmode=0,dependent=0,directories=0,fullscreen=0,location=0,menubar=0,resizable=1,scrollbars=1,status=1,toolbar=0');
-		content.innerHTML = content.backup;
+		//window.open("/fetchpdf", '', 'height=' + 800 + ',width=' + 600 + ',channelmode=0,dependent=0,directories=0,fullscreen=0,location=0,menubar=0,resizable=1,scrollbars=1,status=1,toolbar=0');
+		//content.innerHTML = content.backup;
 		document.body.style.cursor = "auto";
+		content.innerHTML = "<div class=\"counter\"><a href=\"/fetchpdf\" onclick=\"setTimeout(function(){window.location='/book';}, 3000);\">Download</a></div>";
 	} else {
 		content.innerHTML = '<div class="counter">Page ' + xmlhttp.responseText + '</div>';
 		setTimeout(function() {

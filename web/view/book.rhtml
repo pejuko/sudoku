@@ -11,17 +11,17 @@
     <table>
       <tr class="level">
         <th>Level</th>
-      <% (3..8).each do |l| %>
-        <td class="lname"><%= l-2 %></td>
+      <% (1..6).each do |l| %>
+        <td class="lname"><%= l %></td>
       <% end %>
       </tr>
       <tr>
         <th>Pages</th>
-      <% (3..8).each do |l| %>
+      <% (1..6).each do |l| %>
         <td><input type="text" name="level[<%= l %>]" value="1" size="1" /></td>
       <% end %>
       </tr>
     </table>
-    <input class="button" type="submit" name="download" value="download" />
+    <input class="button" type="submit" name="download" value="generate" />
   </form>
 </center>
