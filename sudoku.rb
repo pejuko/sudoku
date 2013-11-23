@@ -292,7 +292,8 @@ end
 
 class Generator
 
-  DIFFICULTY = [30, 50, 80, 110, 140, 170, 200, 250, 300, 400]
+  #DIFFICULTY = [30, 50, 80, 110, 140, 170, 200, 250, 300, 400]
+  DIFFICULTY = [20, 30, 60, 120, 250, 500, 1000, 1500, 2000, 5000]
 
   attr_reader :grid, :mask, :level
 
@@ -375,6 +376,7 @@ class Generator
     end while (et-st < @time_limit) and (s and s.difficulty < DIFFICULTY[level])# and (loops<100)
     p [et-st, loops, DIFFICULTY[level]]
     p closest.difficulty
+    p closest.used_rules
     @mask = closest.grid.mask
 #    throw "too difficult" if loops >= 100 or et-st>=@time_limit
 #    throw "too difficult" if et-st>=@time_limit
@@ -422,7 +424,7 @@ end
 
 class Solver < Generator
 
-  attr_reader :grid, :dim, :difficulty
+  attr_reader :grid, :dim, :difficulty, :used_rules
 
   def initialize(grid, time_limit=1)
     @grid = grid
@@ -432,6 +434,7 @@ class Solver < Generator
 #    @solvable = solve_rules || solve_brute_force(time_limit)
 #    @diffilulty = 99999999999 unless @solvable
     @solutions = []
+    @used_rules = []
   end
 
   def find_solutions keep=false, tl=@time_limit
@@ -472,6 +475,7 @@ class Solver < Generator
         empty_cells = @grid.empty_cells
         if res
           @difficulty += rule.difficulty
+          @used_rules << klass
           if $DEBUG_RULES
             puts klass.name
             @grid.print
@@ -731,7 +735,7 @@ end
 #
 class SinglePossibilityRule < Rule
 
-  def initialize(grid, d=10)
+  def initialize(grid, d=30)
     super
   end
  
@@ -757,7 +761,7 @@ end
 # it is only choice in one group in other group there can be possibilities
 class HiddenSingleRule < OnlyChoiseRule
 
-  def initialize(grid, d=15)
+  def initialize(grid, d=40)
     super
   end
 
@@ -786,7 +790,7 @@ end
 #
 class SubGroupExclusionRule < Rule
 
-  def initialize(grid, d=15)
+  def initialize(grid, d=40)
     super
   end
 
@@ -839,7 +843,7 @@ end
 #
 class HiddenTwinExclusionRule < OnlyChoiseRule
 
-  def initialize(grid, d=25)
+  def initialize(grid, d=55)
     super
   end
 
@@ -880,7 +884,7 @@ end
 #
 class NakedTwinExclusionRule < OnlyChoiseRule
 
-  def initialize(grid, d=20)
+  def initialize(grid, d=50)
     super
   end
 
@@ -916,7 +920,7 @@ end
 #
 class XWingRule < Rule
 
-  def initialize(grid, d=30)
+  def initialize(grid, d=500)
     super
   end
 
@@ -1007,7 +1011,7 @@ end
 #
 class SwordFishRule < Rule
 
-  def initialize(grid, d=40)
+  def initialize(grid, d=600)
     super
   end
 
