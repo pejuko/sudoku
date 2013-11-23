@@ -1140,7 +1140,7 @@ if __FILE__ == $0
     puts <<-EOF
     #{File.basename $0} <filename>
     #{File.basename $0} <filename> <timelimit (0==off, -1==inf)>
-    #{File.basename $0} <dimension> [level from <1..5>] [alphabet]
+    #{File.basename $0} <dimension> [level from <0..9>] [alphabet|numeric] [time limit]
     EOF
   end
 

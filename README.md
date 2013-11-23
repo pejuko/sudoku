@@ -16,10 +16,11 @@ Usage from command line
 Solve sudoku from file:
 
     sudoku.rb <filename>
+    sudoku.rb <filename> <timelimit (0==off, -1==inf)>
 
 Generate new sudoku:
 
-    sudoku.rb <dimension> [level=<1..5>] [alphabet]
+    sudoku.rb <dimension> [level=<1..5>] [alphabet|numeric] [time limit]
 
 
 API
