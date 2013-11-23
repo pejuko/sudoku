@@ -49,7 +49,7 @@ ul, ol {
   background-image: -o-linear-gradient(top, #eee, #ccc);
 }
 
-#sudoku td, .solution, .hint {
+#sudoku td, .solution, .wrong, .hint {
   font-weight: bold;
   font-size: 26px;
 }
@@ -69,6 +69,15 @@ ul, ol {
   background: -webkit-gradient(linear, left top, left bottom, from(#555), to(#333));
   background-image: -moz-linear-gradient(top, #555, #333);
   background-image: -o-linear-gradient(top, #555, #333);
+}
+
+#sudoku .wrong {
+  color: #eee;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#901010', endColorstr='#700000');
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#901010, endColorstr=#700000)";
+  background: -webkit-gradient(linear, left top, left bottom, from(#911), to(#000));
+  background-image: -moz-linear-gradient(top, #911, #000);
+  background-image: -o-linear-gradient(top, #911, #000);
 }
 
 #sudoku .hint {

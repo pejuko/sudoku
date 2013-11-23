@@ -33,8 +33,8 @@
             <% elsif @sudoku.mask[y][x] %>
               <td>
                 <%= cell %>
-            <% elsif @show_solution and @solution[y][x] != cell %>
-              <td class="solution">
+            <% elsif @show_solution and @solution[y][x] != cell.value %>
+              <td class="<%= (not @solution[y][x]) ? 'solution' : 'wrong' %>">
                 <%= cell %>
             <% else %>
               <td id="<%=y%>:<%=x%>" class="entry">

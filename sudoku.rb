@@ -373,7 +373,7 @@ class Generator
         unused = []
       end
       et = Time.now
-    end while (et-st < @time_limit) and (s and s.difficulty < DIFFICULTY[level])# and (loops<100)
+    end while (et-st < @time_limit) and (closest and closest.difficulty < DIFFICULTY[level])# and (loops<100)
     p [et-st, loops, DIFFICULTY[level]]
     p closest.difficulty
     p closest.used_rules

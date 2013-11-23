@@ -10,7 +10,7 @@ require 'prawn'
 class MainController < Controller
 
   def index
-    @level = session[:level] || 3
+    @level = session[:level] || 5
     @dim = 9
     @chars = :numeric
     session[:level] = @level = request["level"].to_i if request["level"].to_i > 0
@@ -114,11 +114,12 @@ class MainController < Controller
   end
 
   def new_sudoku
-    session[:sudoku] = Sudoku::Generator.new @level, @dim, @chars
+    session[:sudoku] = Sudoku::Generator.new @level, @dim, @chars, 6
     session[:hints] = Array.new(@dim){Array.new(@dim){nil}}
     session[:solution] = Array.new(@dim){Array.new(@dim){nil}}
     request["solution"] = nil
     request["memory"] = nil
+    session[:memory] = nil
   end
 
   def handle_form
