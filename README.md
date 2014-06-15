@@ -4,7 +4,7 @@ Sudoku generator and solver
 Running web demo
 ================
 
-[http://sudoku-game.heroku.com/](http://sudoku-game.heroku.com)
+[http://sudoku-game.herokuapp.com//](http://sudoku-game.herokuapp.com/)
 
 * play on-line
 * print sudoku book
